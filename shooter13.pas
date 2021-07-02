@@ -216,9 +216,9 @@ begin
   end;
 end;
 
-procedure errorMessage;
+procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',SDL_GetError,NIL); HALT(1);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL); HALT(1);
 end;
 
 // *****************   SOUND  *****************
@@ -226,15 +226,15 @@ end;
 procedure loadSounds;
 begin
   sounds[1] := Mix_LoadWAV('sound/334227__jradcoolness__laser.ogg');
-  if sounds[1] = NIL then errorMessage;
+  if sounds[1] = NIL then errorMessage('Soundfile "334227__jradcoolness__laser.ogg" not found!');
   sounds[2] := Mix_LoadWAV('sound/196914__dpoggioli__laser-gun.ogg');
-  if sounds[2] = NIL then errorMessage;
+  if sounds[2] = NIL then errorMessage('Soundfile "196914__dpoggioli__laser-gun.ogg" not found!');
   sounds[3] := Mix_LoadWAV('sound/245372__quaker540__hq-explosion.ogg');
-  if sounds[3] = NIL then errorMessage;
+  if sounds[3] = NIL then errorMessage('Soundfile "245372__quaker540__hq-explosion.ogg" not found!');
   sounds[4] := Mix_LoadWAV('sound/10 Guage Shotgun-SoundBible.com-74120584.ogg');
-  if sounds[4] = NIL then errorMessage;
+  if sounds[4] = NIL then errorMessage('Soundfile "10 Guage Shotgun-SoundBible.com-74120584.ogg" not found!');
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
-  if sounds[5] = NIL then errorMessage;
+  if sounds[5] = NIL then errorMessage('Soundfile "342749__rhodesmas__notification-01.ogg" not found!');
 
   Mix_VolumeChunk(sounds[1], MIX_MAX_VOLUME);
 end;
@@ -248,7 +248,7 @@ begin
     music := NIL;
   end;
   music := Mix_LoadMUS('music/Mercury.ogg');
-  if music = NIL then errorMessage;
+  if music = NIL then errorMessage('Music: "Mercury.ogg" not found!');
   Mix_VolumeMusic(MIX_MAX_VOLUME);
 end;
 
@@ -323,7 +323,7 @@ begin
   if t = NIL then
   begin
     t := IMG_LoadTexture(app.Renderer, Pfad);
-    if t = NIL then errorMessage;
+    if t = NIL then errorMessage(SDL_GetError);
     addTextureToCache(Pfad, t);
   end;
   loadTexture := t;
@@ -1109,20 +1109,20 @@ begin
   windowFlags := 0;
 
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then
-    errorMessage;
+    errorMessage(SDL_GetError());
 
   app.Window := SDL_CreateWindow('Shooter 13', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
-    errorMessage;
+    errorMessage(SDL_GetError());
 
   if MIX_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0 then
-    errorMessage;
+    errorMessage(SDL_GetError());
   Mix_AllocateChannels(MAX_SND_CHANNELS);
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);
   if app.Renderer = NIL then
-    errorMessage;
+    errorMessage(SDL_GetError());
 
   IMG_INIT(IMG_INIT_PNG OR IMG_INIT_JPG);
   SDL_ShowCursor(0);

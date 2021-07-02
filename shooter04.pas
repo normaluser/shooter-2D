@@ -51,9 +51,9 @@ VAR app              : S_App;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage;
+procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',SDL_GetError,NIL); HALT(1);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL); HALT(1);
 end;
 
 // *****************   DRAW   *****************
@@ -70,7 +70,7 @@ end;
 function loadTexture(Pfad : PChar) : PSDL_Texture;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
-  if loadTexture = NIL then errorMessage;
+  if loadTexture = NIL then errorMessage(SDL_GetError);
 end;
 
 procedure prepareScene;
@@ -93,16 +93,16 @@ begin
   windowFlags := 0;
 
   if SDL_Init(SDL_INIT_VIDEO) < 0 then
-    errorMessage;
+    errorMessage(SDL_GetError());
 
   app.Window := SDL_CreateWindow('Shooter 04', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
-    errorMessage;
+    errorMessage(SDL_GetError());
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);
   if app.Renderer = NIL then
-    errorMessage;
+    errorMessage(SDL_GetError());
 
   IMG_INIT(IMG_INIT_PNG OR IMG_INIT_JPG);
   SDL_ShowCursor(0);

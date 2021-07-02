@@ -49,9 +49,9 @@ VAR app      : S_App;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage;
+procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',SDL_GetError,NIL); HALT(1);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL); HALT(1);
 end;
 
 // *****************   DRAW   *****************
@@ -68,7 +68,7 @@ end;
 function loadTexture(Pfad : PChar) : PSDL_Texture;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
-  if loadTexture = NIL then errorMessage;
+  if loadTexture = NIL then errorMessage(SDL_GetError);
 end;
 
 procedure prepareScene;

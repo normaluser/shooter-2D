@@ -323,7 +323,7 @@ begin
   if t = NIL then
   begin
     t := IMG_LoadTexture(app.Renderer, Pfad);
-    if t = NIL then errorMessage(SDL_GetError);
+    if t = NIL then errorMessage(SDL_GetError());
     addTextureToCache(Pfad, t);
   end;
   loadTexture := t;

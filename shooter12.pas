@@ -249,7 +249,7 @@ end;
 function loadTexture(Pfad : PChar) : PSDL_Texture;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
-  if loadTexture = NIL then errorMessage(SDL_GetError);
+  if loadTexture = NIL then errorMessage(SDL_GetError());
 end;
 
 procedure prepareScene;

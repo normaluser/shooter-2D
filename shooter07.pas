@@ -109,7 +109,7 @@ function loadTexture(Pfad : PChar) : PSDL_Texture;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
   {SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, 'Loading: ',a);}
-  if loadTexture = NIL then errorMessage(SDL_GetError);
+  if loadTexture = NIL then errorMessage(SDL_GetError());
 end;
 
 procedure prepareScene;

@@ -61,6 +61,10 @@ CONST SCREEN_WIDTH  = 1280;
 
 TYPE { "S_" short for "Struct" from "C" }
      String50 = String[MAX_STRING_LENGTH];
+     Delegating = (Logo, Highsc, Game);
+     S_Delegate = RECORD
+                    logic, draw : Delegating;
+                  end;
      Textur = ^S_Texture;
      S_Texture = RECORD
                    name : PChar;
@@ -72,6 +76,7 @@ TYPE { "S_" short for "Struct" from "C" }
                   Renderer : PSDL_Renderer;
                   keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
                   textureHead, textureTail : Textur;
+                  Delegate : S_Delegate;
                 end;
      Entity   = ^S_Entity;
      S_Entity = RECORD
@@ -126,7 +131,6 @@ VAR app                  : S_App;
     background,
     explosionTexture     : PSDL_Texture;
     Event                : PSDL_EVENT;
-    GamePlay,
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
     gRemainder           : double;
@@ -218,7 +222,8 @@ end;
 
 procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL); HALT(1);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
+  HALT(1);
 end;
 
 // *****************   SOUND  *****************
@@ -455,7 +460,8 @@ end;
 procedure initHighScore;
 begin
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
-  GamePlay := FALSE;
+  app.delegate.logic := HighSC;
+  app.delegate.draw  := HighSC;
 end;
 
 procedure initHighScoreTable;
@@ -711,7 +717,7 @@ begin
   end;
 end;
 
-procedure draw;
+procedure draw_Game;
 begin
   drawBackground;
   drawStarfield;
@@ -965,7 +971,7 @@ begin
   end;
 end;
 
-procedure logic;
+procedure logic_Game;
 begin
   doBackGround;
   doStarfield;
@@ -1065,6 +1071,8 @@ end;
 
 procedure initStage;
 begin
+  app.delegate.logic := Game;
+  app.delegate.draw  := Game;
   bulletTexture      := loadTexture('gfx/playerBullet.png');
   enemyTexture       := loadTexture('gfx/enemy.png');
   alienbulletTexture := loadTexture('gfx/alienBullet.png');
@@ -1077,7 +1085,6 @@ begin
   initPlayer;
   enemyspawnTimer := 0;
   resetTimer := FPS * 3;
-  GamePlay:= TRUE;
 end;
 
 // *******  HIGHSCORE / TITLE LOGIC  **********
@@ -1130,7 +1137,6 @@ end;
 
 procedure initGame;
 begin
-  GamePlay := FALSE;
   exitLoop := FALSE;
   gTicks := SDL_GetTicks;
   gRemainder := 0;
@@ -1222,6 +1228,22 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
+// *************   DELEGATE LOGIC   ***********
+
+procedure delegate_logic(Wahl : Delegating);
+begin
+  CASE Wahl of
+  HighSC : begin
+             logic_HighSC;
+             draw_HighSC;
+           end;
+  Game : begin
+           logic_Game;
+           draw_Game;
+         end;
+  end;
+end;
+
 // *****************   MAIN   *****************
 
 begin
@@ -1235,16 +1257,7 @@ begin
   begin
     prepareScene;
     doInput;
-    if GamePlay then
-    begin
-      logic;
-      draw;
-    end
-    else
-    begin
-      logic_HighSC;
-      draw_HighSC;
-    end;
+    delegate_logic(app.delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

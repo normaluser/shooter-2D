@@ -53,7 +53,8 @@ VAR app              : S_App;
 
 procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL); HALT(1);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
+  HALT(1);
 end;
 
 // *****************   DRAW   *****************

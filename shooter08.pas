@@ -41,10 +41,15 @@ CONST SCREEN_WIDTH  = 1280;
       FPS = 60;
 
 TYPE { "S_" short for "Struct" from "C" }
+     Delegating = (Logo, Highsc, Game);
+     S_Delegate = RECORD
+                    logic, draw : Delegating;
+                  end;
      S_App    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                   keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
+                  Delegate : S_Delegate;
                 end;
      Entity   = ^S_Entity;
      S_Entity = RECORD
@@ -113,7 +118,8 @@ end;
 
 procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL); HALT(1);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
+  HALT(1);
 end;
 
 // *****************   DRAW   *****************
@@ -130,7 +136,6 @@ end;
 function loadTexture(Pfad : PChar) : PSDL_Texture;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
-  {SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, 'Loading: ',a);}
   if loadTexture = NIL then errorMessage(SDL_GetError());
 end;
 
@@ -169,7 +174,7 @@ begin
   end;
 end;
 
-procedure draw;
+procedure draw_Game;
 begin
   drawFighters;
   drawBullets;
@@ -404,7 +409,7 @@ begin
   resetTimer := FPS * 3;
 end;
 
-procedure logic;
+procedure logic_Game;
 begin
   doPlayer;
   doEnemies;
@@ -422,6 +427,8 @@ end;
 
 procedure initStage;
 begin
+  app.delegate.logic := Game;
+  app.delegate.draw  := Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   initEntity(stage.fighterHead);
@@ -512,6 +519,18 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
+// *************   DELEGATE LOGIC   ***********
+
+procedure delegate_logic(Wahl : Delegating);
+begin
+  CASE Wahl of
+  Game : begin
+           logic_Game;
+           draw_Game;
+         end;
+  end;
+end;
+
 // *****************   MAIN   *****************
 
 begin
@@ -527,8 +546,7 @@ begin
   begin
     prepareScene;
     doInput;
-    logic;
-    draw;
+    delegate_logic(app.delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

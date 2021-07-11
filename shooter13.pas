@@ -347,12 +347,12 @@ end;
 
 // *****************   TEXT   *****************
 
-procedure drawText(x, y, r, g, b : integer; format : String50);
+procedure drawText(x, y, r, g, b : integer; outText : String50);
 VAR i, len : integer;
     rect : TSDL_Rect;
 begin
-  len := LENGTH(format);
-  format := UPCASE(format);  { all capital letters }
+  len := LENGTH(outText);
+  outText := UPCASE(outText);  { all capital letters }
   rect.w := GLYPH_WIDTH;
   rect.h := GLYPH_HEIGHT;
   rect.y := 0;
@@ -360,9 +360,9 @@ begin
 
   for i := 1 to len do
   begin
-    if (format[i] IN [' '..'Z']) then
+    if (outText[i] IN [' '..'Z']) then
     begin
-      rect.x := (ORD(format[i]) - ORD(' ')) * GLYPH_WIDTH;
+      rect.x := (ORD(outText[i]) - ORD(' ')) * GLYPH_WIDTH;
       blitRect(fontTexture, @rect, x, y);
       INC(x, GLYPH_WIDTH);
     end;
@@ -370,10 +370,10 @@ begin
 end;
 
 function numberfill(a : integer) : String50;
+VAR FMT : string;
 begin
-  if (a >= 100) then            begin numberfill :=        IntToStr(a); end;
-  if (a < 100) AND (a > 9) then begin numberfill :=  '0' + IntToStr(a); end;
-  if (a < 10) then              begin numberfill := '00' + IntToStr(a); end;
+  Fmt := '[%.3d]';                  { Fmt: arguments for Format }
+  numberfill := Format(Fmt, [a]);   { Format: format a string with given arguments (=> Fmt) }
 end;
 
 procedure drawHud;
@@ -443,7 +443,7 @@ begin
   drawText(425, 70, 255, 255, 255, 'HIGHSCORES');
   for i := 0 to PRED(NUM_HighScores) do
   begin
-    a := '#' + IntToStr(i + 1) + ' ........... ' + numberfill(HighScores[i].score);
+    a := '#' + IntToStr(i + 1) + ' ............ ' + numberfill(HighScores[i].score);
     if HighScores[i].recent = 1 then
     begin
       drawText(425, y, 255, 255, 0, a);

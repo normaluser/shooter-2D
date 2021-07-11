@@ -271,12 +271,12 @@ end;
 
 // *****************   TEXT   *****************
 
-procedure drawText(x, y, r, g, b : integer; format : String50);
+procedure drawText(x, y, r, g, b : integer; outText : String50);
 VAR i, len : integer;
     rect : TSDL_Rect;
 begin
-  len := LENGTH(format);
-  format := UPCASE(format);  { all capital letters }
+  len := LENGTH(outText);
+  outText := UPCASE(outText);  { all capital letters }
   rect.w := GLYPH_WIDTH;
   rect.h := GLYPH_HEIGHT;
   rect.y := 0;
@@ -284,9 +284,9 @@ begin
 
   for i := 1 to len do
   begin
-    if (format[i] IN [' '..'Z']) then
+    if (outText[i] IN [' '..'Z']) then
     begin
-      rect.x := (ORD(format[i]) - ORD(' ')) * GLYPH_WIDTH;
+      rect.x := (ORD(outText[i]) - ORD(' ')) * GLYPH_WIDTH;
       blitRect(fontTexture, @rect, x, y);
       INC(x, GLYPH_WIDTH);
     end;

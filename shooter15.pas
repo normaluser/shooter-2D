@@ -361,16 +361,16 @@ end;
 
 // *****************   TEXT   *****************
 
-procedure drawText(x, y, r, g, b : integer; align : Alignment; format : String50);
+procedure drawText(x, y, r, g, b : integer; align : Alignment; outText : String50);
 VAR i, len : integer;
     rect : TSDL_Rect;
 begin
-  len := LENGTH(format);
+  len := LENGTH(outText);
   CASE align of
     TEXT_RIGHT :  begin x := x - (len * GLYPH_WIDTH);       end;
     TEXT_CENTER : begin x := x - (len * GLYPH_WIDTH) DIV 2; end;
   end;
-  format := UPCASE(format);  { all capital letters }
+  outText := UPCASE(outText);  { all capital letters }
   rect.w := GLYPH_WIDTH;
   rect.h := GLYPH_HEIGHT;
   rect.y := 0;
@@ -378,9 +378,9 @@ begin
 
   for i := 1 to len do
   begin
-    if (format[i] IN [' '..'Z']) then
+    if (outText[i] IN [' '..'Z']) then
     begin
-      rect.x := (ORD(format[i]) - ORD(' ')) * GLYPH_WIDTH;
+      rect.x := (ORD(outText[i]) - ORD(' ')) * GLYPH_WIDTH;
       blitRect(fontTexture, @rect, x, y);
       INC(x, GLYPH_WIDTH);
     end;
@@ -388,10 +388,10 @@ begin
 end;
 
 function numberfill(a : integer) : String50;
+VAR FMT : string;
 begin
-  if (a >= 100) then            begin numberfill :=        IntToStr(a); end;
-  if (a < 100) AND (a > 9) then begin numberfill :=  '0' + IntToStr(a); end;
-  if (a < 10) then              begin numberfill := '00' + IntToStr(a); end;
+  Fmt := '[%.3d]';                  { Fmt: arguments for Format }
+  numberfill := Format(Fmt, [a]);   { Format: format a string with given arguments (=> Fmt) }
 end;
 
 procedure initFonts;
@@ -506,7 +506,7 @@ end;
 procedure drawHighScores;
 VAR i, y, r, g, b, o : integer;
     p : String16;
-    a : String50;
+    a, Fmt : String50;
 begin
   p := ' ............';
   y := 150;
@@ -516,9 +516,12 @@ begin
     r := 255;
     g := 255;
     b := 255;
-    o := LENGTH(HighScores[i].name);
-    a := '#' + IntToStr(i + 1) + ' ' + HighScores[i].name  +
-         LEFTSTR(p, (MAX_SCORE_NAME_LENGTH - o)) + '..... ' + numberfill(HighScores[i].score);
+//    o := LENGTH(HighScores[i].name);
+//    a := '#' + IntToStr(i + 1) + ' ' + HighScores[i].name  +
+//         LEFTSTR(p, (MAX_SCORE_NAME_LENGTH - o)) + '..... ' + numberfill(HighScores[i].score);
+    o := MAX_SCORE_NAME_LENGTH - LENGTH(HighScores[i].name) + 5;
+    Fmt := '[%s%.d %s %-*.*s %.3d]';
+    a := Format(fmt, ['#',i + 1, HighScores[i].name, o, o, '....................',HighScores[i].score]);
     if HighScores[i].recent = 1 then
       b := 0;
     drawText(SCREEN_WIDTH DIV 2, y, r, g, b, TEXT_CENTER, a);

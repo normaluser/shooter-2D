@@ -181,6 +181,7 @@ end;
 // *****************   SOUND  *****************
 
 procedure loadSounds;
+VAR i : byte;
 begin
   sounds[1] := Mix_LoadWAV('sound/334227__jradcoolness__laser.ogg');
   if sounds[1] = NIL then errorMessage('Soundfile "334227__jradcoolness__laser.ogg" not found!');
@@ -193,7 +194,8 @@ begin
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
   if sounds[5] = NIL then errorMessage('Soundfile "342749__rhodesmas__notification-01.ogg" not found!');
 
-  Mix_VolumeChunk(sounds[1], MIX_MAX_VOLUME);
+  for i := 1 to 5 do
+    Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
 end;
 
 procedure loadMusic;

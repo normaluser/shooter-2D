@@ -21,13 +21,13 @@ The original source and a lot of explanations can be found at:
 https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
-*** Opening a SDL - Window
+*** Opening a SDL2 - Window
 ***************************************************************************}
 
 PROGRAM Shooter1;
 
 {$COPERATORS OFF}
-USES SDL2;
+USES CRT, SDL2;
 
 CONST SCREEN_WIDTH  = 1280;         { size of the grafic window }
       SCREEN_HEIGHT = 720;          { size of the grafic window }
@@ -106,6 +106,7 @@ end;
 // *****************   MAIN   *****************
 
 begin
+  CLRSCR;
   InitSDL;
   exitLoop := FALSE;
   NEW(Event);

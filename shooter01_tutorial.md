@@ -1,6 +1,6 @@
 Part 1: Opening a window
 
-##### Introduction
+#### Introduction
 
 This first tutorial will explain how to open a window in SDL2. 
 Compile the pascal source code to run the program.
@@ -8,7 +8,7 @@ Compile the pascal source code to run the program.
 A 1280 x 720 window will open, colored a light shade of blue. 
 Close the window by clicking on the window's close button or make a mouseclick inside of the window.
 
-##### Inspecting the code
+#### Inspecting the code
 ```pascal
 USES CRT, SDL2;
 ```
@@ -100,8 +100,7 @@ end;
 ```
 
 This function simply reads all the recent inputs (keyboard, mouse, etc) from SDL's queue until there are none left. 
-We'll only handle one function right now - quitting. 
-SDL_QUITEV: This event is sent when we close the SDL window by clicking on its close gadget.
+We'll only handle one function right now - quitting. SDL_QUITEV: This event is sent when we close the SDL window by clicking on its close gadget.
 SDL_MOUSEBUTTONDOWN: if you press a mousebutton inside of the SDL window, this will be recognized and the exitLoop variable will be set to TRUE.
 
 Now let's look at the drawing code. It has just two functions:

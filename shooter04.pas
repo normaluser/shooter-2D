@@ -119,6 +119,36 @@ end;
 
 // *****************   Input  *****************
 
+procedure doKeyDown;
+begin
+  if Event^.key._repeat = 0 then
+  begin
+    CASE Event^.key.keysym.sym of
+      SDLK_ESCAPE: exitLoop := TRUE;                { close Window with ESC-Key }
+
+      SDLK_LEFT,  SDLK_KP_4: app.left  := 1;
+      SDLK_RIGHT, SDLK_KP_6: app.right := 1;
+      SDLK_UP,    SDLK_KP_8: app.up    := 1;
+      SDLK_DOWN,  SDLK_KP_2: app.down  := 1;
+      SDLK_LCTRL:            app.fire  := 1;
+    end; { CASE }
+  end;   { IF }
+end;
+
+procedure doKeyUp;
+begin
+  if Event^.key._repeat = 0 then
+  begin
+    CASE Event^.key.keysym.sym of
+      SDLK_LEFT,   SDLK_KP_4: app.left  := 0;
+      SDLK_RIGHT,  SDLK_KP_6: app.right := 0;
+      SDLK_UP,     SDLK_KP_8: app.up    := 0;
+      SDLK_DOWN,   SDLK_KP_2: app.down  := 0;
+      SDLK_LCTRL:             app.fire  := 0;
+    end; { CASE }
+  end;   { IF }
+end;
+
 procedure doInput;
 begin
   while SDL_PollEvent(Event) = 1 do
@@ -128,27 +158,9 @@ begin
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
-      SDL_KEYDOWN: begin
-                     CASE Event^.key.keysym.sym of
-                       SDLK_ESCAPE: exitLoop := TRUE;
+      SDL_KEYDOWN: doKeyDown;
+      SDL_KEYUP:   doKeyUp;
 
-                       SDLK_LEFT,  SDLK_KP_4: app.left  := 1;
-                       SDLK_RIGHT, SDLK_KP_6: app.right := 1;
-                       SDLK_UP,    SDLK_KP_8: app.up    := 1;
-                       SDLK_DOWN,  SDLK_KP_2: app.down  := 1;
-                       SDLK_LCTRL:            app.fire  := 1;
-                     end; { CASE }
-                   end;   { SDL_Keydown }
-
-      SDL_KEYUP: begin
-                   CASE Event^.key.keysym.sym of
-                     SDLK_LEFT,   SDLK_KP_4: app.left  := 0;
-                     SDLK_RIGHT,  SDLK_KP_6: app.right := 0;
-                     SDLK_UP,     SDLK_KP_8: app.up    := 0;
-                     SDLK_DOWN,   SDLK_KP_2: app.down  := 0;
-                     SDLK_LCTRL:             app.fire  := 0;
-                   end; { CASE }
-                 end;   { SDL_KEYUP }
     end;  { CASE Event }
   end;    { SDL_PollEvent }
 end;

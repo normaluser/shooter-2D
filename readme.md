@@ -1,7 +1,9 @@
 # '2D Shoot em up' game tutorial using SDL2 / Pascal
 
-Tutorial (15 parts) about programming a game in pascal / lazarus using SDL2. 
+Tutorial (15 parts) about programming a game in pascal / lazarus using SDL2.
+
 The repository contains the source code for all 15 parts. (and pascal-specific tutorials...)
+
 The original tutorial (and "c" - source code) can be found at: https://www.parallelrealities.co.uk/tutorials/#shooter
 
 # Dependencies

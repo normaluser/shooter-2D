@@ -28,7 +28,9 @@ If you have any contributions, feel free to drop a pull request or send me a mai
 # Controls:
 
 Arrow Keys -> Move
+
 Left ctrl -> Fire
+
 ESC key or the window´s close button or a mouseclick inside of the game window closes the game.
 
 # Special Thanks / Credits

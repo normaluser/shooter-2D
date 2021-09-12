@@ -27,7 +27,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 PROGRAM Shooter2;
 
 {$COPERATORS OFF}
-USES CRT, SDL2, SDL2_Image;
+USES SDL2, SDL2_Image;
 
 CONST SCREEN_WIDTH  = 1280;
       SCREEN_HEIGHT = 720;
@@ -137,7 +137,6 @@ end;
 // *****************   MAIN   *****************
 
 begin
-  CLRSCR;
   InitSDL;
   exitLoop := FALSE;
   NEW(Event);

@@ -1,7 +1,7 @@
 # '2D Shoot em up' game tutorial using SDL2 / Pascal
 
-Tutorial (15 parts) about programming a game in pascal / lazarus using SDL2.                                                                                            
-The repository contains the source code for all 15 parts. 
+Tutorial (15 parts) about programming a game in pascal / lazarus using SDL2. 
+The repository contains the source code for all 15 parts. (and pascal-specific tutorials...)
 The original tutorial (and "c" - source code) can be found at: https://www.parallelrealities.co.uk/tutorials/#shooter
 
 # Dependencies
@@ -12,13 +12,13 @@ Windows and Linux:
 * sdl2-image
 * sdl2-mixer
 * Lazarus / Freepascal
-* Pascal SDL2 headerfiles 
+* Pascal SDL2 Header files 
 
-a good installation guide for SDL2 and the SDL2 headerfiles can be found at:  https://www.freepascal-meets-sdl.net/
+a good installation guide for SDL2 and the SDL2-headerfiles can be found at:  https://www.freepascal-meets-sdl.net/
 
 # Why ?
 
-Because this was the best complete tutorial i found on the net which explains in easy steps how to program a game with SDL2.
+Because this was the best complete tutorial i found on the net which explains in easy steps how to program a game with SDL2. 
 And I want to learn how to use SDL2 to get easy acess to graphic, sound and input.
 
 # Bugs / Contributions 
@@ -28,14 +28,8 @@ If you have any contributions, feel free to drop a pull request or send me a mai
 # Controls:
 
 Arrow Keys -> Move
-
 Left ctrl -> Fire
-
-ESC key or the window´s close button or 
-
-a mouseclick inside of the game window     
-
-closes the game.
+ESC key or the window´s close button or a mouseclick inside of the game window closes the game.
 
 # Special Thanks / Credits
 
@@ -60,3 +54,4 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+

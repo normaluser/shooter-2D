@@ -9,11 +9,6 @@ A 1280 x 720 window will open, colored a light shade of blue.
 Close the window by clicking on the window's close button or make a mouseclick inside of the window.
 
 #### Inspecting the code
-```pascal
-USES CRT, SDL2;
-```
-In the USES you find a call for the CRT and SDL2 units. The CRT-Unit is only used to clear the console-window to see the output from the program 
-(error-messages). The SDL2-Unit is necessary for the following program.
 
 We'll start by looking at the definitions:
 
@@ -125,7 +120,6 @@ Finally, let's look at main part. This is where we'll find our main function and
 
 ```pascal
 begin
-  CLRSCR;
   InitSDL;
   exitLoop := FALSE;
   NEW(Event);

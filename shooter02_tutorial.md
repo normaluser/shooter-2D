@@ -62,7 +62,6 @@ Finally, let's turn our attention to the MAIN section. There have been a few cha
 
 ```pascal
 begin
-  CLRSCR;
   InitSDL;
   exitLoop := FALSE;
   NEW(Event);

@@ -359,12 +359,16 @@ begin
   Loesch_Liste(stage.bulletHead^.next);
   DISPOSE(stage.fighterHead);
   DISPOSE(stage.bulletHead);
+end;
 
-  SDL_DestroyTexture (player^.Texture);
+procedure AtExit;
+begin
+  SDL_DestroyTexture (player.Texture);
   SDL_DestroyTexture (CacheBulletTex);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
+  if Exitcode <> 0 then WriteLn(SDL_GetError());
 end;
 
 // *****************   Input  *****************
@@ -424,6 +428,7 @@ end;
 begin
   RANDOMIZE;
   InitSDL;
+  AddExitProc(@AtExit);
   InitStage;
   exitLoop := FALSE;
   gTicks := SDL_GetTicks;
@@ -439,5 +444,6 @@ begin
     CapFrameRate(gRemainder, gTicks);
   end;
   cleanUp;
+  AtExit;
   DISPOSE(Event);
 end.

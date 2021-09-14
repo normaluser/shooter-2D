@@ -471,12 +471,17 @@ begin
   DISPOSE(player);
   DISPOSE(stage.fighterHead);
   DISPOSE(stage.bulletHead);
+end;
+
+procedure AtExit;
+begin
   SDL_DestroyTexture (alienbulletTexture);
   SDL_DestroyTexture (playerTexture);
   SDL_DestroyTexture (bulletTexture);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
+  if Exitcode <> 0 then WriteLn(SDL_GetError());
 end;
 
 // *****************   Input  *****************
@@ -536,6 +541,7 @@ end;
 begin
   RANDOMIZE;
   InitSDL;
+  AddExitProc(@AtExit);
   InitStage;
   exitLoop := FALSE;
   gTicks := SDL_GetTicks;
@@ -552,5 +558,6 @@ begin
   end;
   resetStage;
   cleanUp;
+  AtExit;
   DISPOSE(Event);
 end.

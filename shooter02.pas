@@ -27,7 +27,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 PROGRAM Shooter2;
 
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image;
+USES CRT, SDL2, SDL2_Image;
 
 CONST SCREEN_WIDTH  = 1280;
       SCREEN_HEIGHT = 720;
@@ -92,33 +92,34 @@ begin
   windowFlags := 0;
   if SDL_Init(SDL_INIT_VIDEO) < 0 then
   begin
-    writeln('Couldn''t initialize SDL: ', SDL_GetError());
+    writeln('Couldn''t initialize SDL');
     HALT(1);
   end;
 
   app.Window := SDL_CreateWindow('Shooter 02', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
   begin
-    writeln('Failed to open ',SCREEN_WIDTH,' x ',SCREEN_HEIGHT,' window: ',SDL_GetError());
+    writeln('Failed to open ',SCREEN_WIDTH,' x ',SCREEN_HEIGHT,' window');
     HALT(1);
   end;
 
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);
   if app.Renderer = NIL then
   begin
-    writeln('Failed to create renderer: ',SDL_GetError());
+    writeln('Failed to create renderer');
     HALT(1);
   end;
 
   IMG_INIT(IMG_INIT_PNG OR IMG_INIT_JPG);
 end;
 
-procedure cleanUp;
+procedure AtExit;
 begin
   SDL_DestroyTexture (player.Texture);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
+  if Exitcode <> 0 then WriteLn(SDL_GetError());
 end;
 
 // *****************   Input  *****************
@@ -137,7 +138,9 @@ end;
 // *****************   MAIN   *****************
 
 begin
+  CLRSCR;
   InitSDL;
+  AddExitProc(@AtExit);
   exitLoop := FALSE;
   NEW(Event);
   player.Texture := loadTexture('gfx/player.png');
@@ -152,6 +155,6 @@ begin
     presentScene;
     SDL_Delay(16);
   end;
-  cleanUp;
+  AtExit;
   DISPOSE(Event);
 end.

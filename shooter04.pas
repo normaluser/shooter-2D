@@ -109,12 +109,13 @@ begin
   SDL_ShowCursor(0);
 end;
 
-procedure cleanUp;
+procedure AtExit;
 begin
   SDL_DestroyTexture (player.Texture);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
+  if Exitcode <> 0 then WriteLn(SDL_GetError());
 end;
 
 // *****************   Input  *****************
@@ -169,6 +170,7 @@ end;
 
 begin
   InitSDL;
+  AddExitProc(@AtExit);
   exitLoop := FALSE;
   NEW(Event);
   player.Texture := loadTexture('gfx/player.png');
@@ -205,6 +207,6 @@ begin
     presentScene;
     SDL_Delay(16);
   end;
-  cleanUp;
+  AtExit;
   DISPOSE(Event);
 end.

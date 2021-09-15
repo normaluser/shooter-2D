@@ -1183,11 +1183,16 @@ begin
   Mix_FreeChunk(sounds[3]);
   Mix_FreeChunk(sounds[2]);
   Mix_FreeChunk(sounds[1]);
-  Mix_CloseAudio;
+end;
 
+procedure AtExit;
+begin
+  Mix_CloseAudio;
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
+  if Exitcode <> 0 then WriteLn(SDL_GetError());
+  SDL_ShowCursor(1);
 end;
 
 // *****************   Input  *****************
@@ -1251,6 +1256,7 @@ end;
 begin
   RANDOMIZE;
   InitSDL;
+  AddExitProc(@AtExit);
   initGame;
   initHighScore;
   NEW(Event);
@@ -1263,8 +1269,7 @@ begin
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;
-
   cleanUp;
   DISPOSE(Event);
-  SDL_ShowCursor(1);
+  AtExit;
 end.

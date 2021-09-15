@@ -558,6 +558,6 @@ begin
   end;
   resetStage;
   cleanUp;
-  AtExit;
   DISPOSE(Event);
+  AtExit;
 end.

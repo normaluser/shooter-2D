@@ -840,14 +840,19 @@ begin
   Mix_FreeChunk(sounds[3]);
   Mix_FreeChunk(sounds[2]);
   Mix_FreeChunk(sounds[1]);
-  Mix_CloseAudio;
+end;
 
+procedure AtExit;
+begin
+  Mix_CloseAudio;
   SDL_DestroyTexture (alienbulletTexture);
   SDL_DestroyTexture (playerTexture);
   SDL_DestroyTexture (bulletTexture);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
+  if Exitcode <> 0 then WriteLn(SDL_GetError());
+  SDL_ShowCursor(1);
 end;
 
 // *****************   Input  *****************
@@ -907,6 +912,7 @@ end;
 begin
   RANDOMIZE;
   InitSDL;
+  AddExitProc(@AtExit);
   initSounds;
   InitStage;
   exitLoop := FALSE;
@@ -925,5 +931,5 @@ begin
   resetStage;
   cleanUp;
   DISPOSE(Event);
-  SDL_ShowCursor(1);
+  AtExit;
 end.

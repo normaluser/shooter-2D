@@ -328,7 +328,7 @@ end;
 
 procedure AtExit;
 begin
-  SDL_DestroyTexture (player.Texture);
+  SDL_DestroyTexture (player^.Texture);
   SDL_DestroyTexture (CacheEnemyTex);
   SDL_DestroyTexture (CacheBulletTex);
   SDL_DestroyRenderer(app.Renderer);

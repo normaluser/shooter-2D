@@ -410,6 +410,6 @@ begin
     CapFrameRate(gRemainder, gTicks);
   end;
   cleanUp;
-  AtExit;
   DISPOSE(Event);
+  AtExit;
 end.

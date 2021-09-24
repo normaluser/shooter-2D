@@ -21,7 +21,7 @@ The original source and a lot of explanations can be found at:
 https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
-*** Refactoring: pointers for linked lists-
+*** Refactoring: pointers for linked lists
 ***************************************************************************}
 
 PROGRAM Shooter5;
@@ -353,6 +353,6 @@ begin
     CapFrameRate(gRemainder, gTicks);
   end;
   cleanUp;
-  AtExit;
   DISPOSE(Event);
+  AtExit;
 end.

@@ -27,10 +27,10 @@ converted from "C" to "Pascal" by Ulrich 2021
 PROGRAM Shooter14;
 
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
+USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
 
-CONST SCREEN_WIDTH  = 1280;
-      SCREEN_HEIGHT = 720;
+CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
+      SCREEN_HEIGHT = 720;             { size of the grafic window }
       PLAYER_SPEED  = 4.0;
       PLAYER_BULLET_SPEED = 20.0;
       ALIEN_BULLET_SPEED = 8.0;
@@ -60,73 +60,73 @@ CONST SCREEN_WIDTH  = 1280;
       GLYPH_HEIGHT     = 28;
       GLYPH_WIDTH      = 18;
 
-TYPE { "S_" short for "Struct" from "C" }
+TYPE                                        { "T" short for "TYPE" }
      String16 = String[MAX_SCORE_NAME_LENGTH];
      String50 = String[MAX_STRING_LENGTH];
      Delegating = (Logo, Highsc, Game);
-     S_Delegate = RECORD
+     TDelegate = RECORD
                     logic, draw : Delegating;
                   end;
-     Textur = ^S_Texture;
-     S_Texture = RECORD
+     PTextur = ^TTexture;
+     TTexture = RECORD
                    name : PChar;
                    Texture : PSDL_Texture;
-                   next : Textur;
+                   next : PTextur;
                  end;
-     S_App    = RECORD
+     TApp    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                   keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                  textureHead, textureTail : Textur;
+                  textureHead, textureTail : PTextur;
                   inputText : String;
-                  Delegate : S_Delegate;
+                  Delegate : TDelegate;
                 end;
-     Entity   = ^S_Entity;
-     S_Entity = RECORD
+     PEntity   = ^TEntity;
+     TEntity = RECORD
                   x, y, dx, dy : double;
                   w, h, health, reload, side : integer;
                   Texture : PSDL_Texture;
-                  next : Entity;
+                  next : PEntity;
                 end;
-     Explosion = ^S_Explosion;
-     S_Explosion = RECORD
+     PExplosion = ^TExplosion;
+     TExplosion = RECORD
                      x, y, dx, dy : double;
                      r, g, b, a : integer;
-                     next : Explosion;
+                     next : PExplosion;
                    end;
-     Debris = ^S_Debris;
-     S_Debris = RECORD
+     PDebris = ^TDebris;
+     TDebris = RECORD
                   x, y, dx, dy : double;
                   rect : TSDL_Rect;
                   Texture : PSDL_Texture;
                   life : integer;
-                  next : Debris;
+                  next : PDebris;
                 end;
-     S_Stage  = RECORD
+     TStage  = RECORD
                   fighterHead,   fighterTail,
                   bulletHead,    bulletTail,
-                  pointsHead,    pointsTail    : Entity;
-                  explosionHead, explosionTail : Explosion;
-                  debrisHead,    debrisTail    : Debris;
+                  pointsHead,    pointsTail    : PEntity;
+                  explosionHead, explosionTail : PExplosion;
+                  debrisHead,    debrisTail    : PDebris;
                   score : integer;
                 end;
-     S_Star   = RECORD
+     TStar   = RECORD
                   x, y, speed : integer;
                 end;
-   HighScoreDef = RECORD
+   THighScoreDef = RECORD
                     name : String16;
                     recent, score : integer;
                   end;
-   HighScoreArray =     Array[0..PRED(NUM_HighScores)] OF HighScoreDef;
-   newHighScoresArray = Array[0..NUM_HighScores] OF HighScoreDef;
+   HighScoreArray =     Array[0..PRED(NUM_HighScores)] OF THighScoreDef;
+   newHighScoresArray = Array[0..NUM_HighScores] OF THighScoreDef;
 
    Alignment = (TEXT_LEFT, TEXT_CENTER, TEXT_RIGHT);
 
-VAR app                  : S_App;
-    stage                : S_Stage;
+VAR app                  : TApp;
+    stage                : TStage;
     player,
     enemy,
-    bullet               : Entity;
+    bullet               : PEntity;
     fontTexture,
     pointsTexture,
     enemyTexture,
@@ -144,33 +144,33 @@ VAR app                  : S_App;
     backgroundX,
     enemyspawnTimer,
     resetTimer           : integer;
-    stars                : Array[0..MAX_STARS] OF S_Star;
+    stars                : Array[0..MAX_STARS] OF TStar;
     music                : PMix_Music;
     sounds               : Array[1..SND_MAX] OF PMix_Chunk;
     HighScores           : HighScoreArray;
-    newHighScore         : HighScoreDef;
+    newHighScore         : THighScoreDef;
 
 // *****************   INIT   *****************
 
-procedure initEntity(VAR e : Entity);
+procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
-procedure initDebris(VAR e : Debris);
+procedure initDebris(VAR e : PDebris);
 begin
   e^.x := 0.0;  e^.y := 0.0;  e^.dx := 0.0;  e^.dy := 0.0;
-  e^.life := 0; e^.next := NIL;
+  e^.life := 0; e^.next := NIL; e^.Texture := NIL;
 end;
 
-procedure initExplosion(VAR e : Explosion);
+procedure initExplosion(VAR e : PExplosion);
 begin
   e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0; e^.dy := 0.0;
   e^.r := 0;   e^.g := 0;   e^.b  := 0;   e^.a  := 0;   e^.next := NIL;
 end;
 
-procedure initTex(VAR te : Textur);
+procedure initTex(VAR te : PTextur);
 begin
   te^.name := '';
   te^.Texture := NIL;
@@ -306,7 +306,7 @@ begin
 end;
 
 procedure addTextureToCache(name : PChar; SDLTexture : PSDL_Texture);
-VAR t : Textur;
+VAR t : PTextur;
 begin
   NEW(t);
   initTex(t);
@@ -317,7 +317,7 @@ begin
 end;
 
 function getTexture(name : PChar) : PSDL_Texture;
-VAR t : Textur;
+VAR t : PTextur;
 begin
   getTexture := NIL;
   t := app.textureHead^.next;
@@ -536,7 +536,7 @@ end;
 procedure initHighScoreTable;
 VAR i : integer;
 begin
-  FillChar(HighScores, SizeOf(HighScoreDef), 0);
+  FillChar(HighScores, SizeOf(THighScoreDef), 0);
   for i := 0 to PRED(NUM_HighScores) do
   begin
     HighScores[i].score := NUM_HighScores - i;
@@ -622,7 +622,7 @@ begin
 end;
 
 procedure drawExplosions;
-VAR e : Explosion;
+VAR e : PExplosion;
 begin
   SDL_SetRenderDrawBlendMode(app.Renderer, SDL_Blendmode_ADD);
   SDL_SetTextureBlendMode(explosionTexture, SDL_Blendmode_ADD);
@@ -638,7 +638,7 @@ begin
 end;
 
 procedure drawDebris;
-VAR d : Debris;
+VAR d : PDebris;
 begin
   d := stage.debrisHead^.next;
   while (d <> NIL) do
@@ -649,7 +649,7 @@ begin
 end;
 
 procedure drawBullets;
-VAR b : Entity;
+VAR b : PEntity;
 begin
   b := stage.bulletHead^.next;
   while (b <> NIL) do
@@ -660,7 +660,7 @@ begin
 end;
 
 procedure drawFighters;
-VAR e : Entity;
+VAR e : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -671,7 +671,7 @@ begin
 end;
 
 procedure drawPointsPods;
-VAR p : Entity;
+VAR p : PEntity;
 begin
   p := stage.pointsHead^.next;
   while (p <> NIL) do
@@ -694,7 +694,7 @@ begin
 end;
 
 procedure addPointsPod(x, y : integer);
-VAR e : Entity;
+VAR e : PEntity;
     dest : TSDL_Rect;
 begin
   NEW(e);
@@ -714,8 +714,8 @@ begin
   e^.y := e^.y - (e^.h DIV 2);
 end;
 
-procedure addDebris(e : Entity);
-VAR d : Debris;
+procedure addDebris(e : PEntity);
+VAR d : PDebris;
     x, y, w, h : integer;
 begin
   w := e^.w DIV 2;
@@ -747,7 +747,7 @@ begin
 end;
 
 procedure addExplosions(x, y: double; num : integer);
-VAR e : Explosion;
+VAR e : PExplosion;
     i : integer;
 begin
   for i := 0 to PRED(num) do
@@ -777,7 +777,7 @@ begin
 end;
 
 procedure doPointsPods;
-VAR e, prev : Entity;
+VAR e, prev : PEntity;
 begin
   prev := stage.pointsHead;
   e := stage.pointsHead^.next;
@@ -810,7 +810,7 @@ begin
 end;
 
 procedure doDebris;
-VAR d, prev : Debris;
+VAR d, prev : PDebris;
 begin
   prev := stage.debrisHead;
   d := stage.debrisHead^.next;
@@ -834,7 +834,7 @@ begin
 end;
 
 procedure doExplosions;
-VAR e, prev : Explosion;
+VAR e, prev : PExplosion;
 begin
   prev := stage.ExplosionHead;
   e := stage.ExplosionHead^.next;
@@ -891,8 +891,8 @@ begin
   end;
 end;
 
-function bulletHitFighter(b : Entity) : BOOLEAN;    { b = Bullet; e = Fighter }
-VAR e : Entity;
+function bulletHitFighter(b : PEntity) : BOOLEAN;    { b = Bullet; e = Fighter }
+VAR e : PEntity;
 begin
   e := stage.fighterHead^.next;
   bulletHitFighter := FALSE;
@@ -923,7 +923,7 @@ begin
 end;
 
 procedure doBullets;
-VAR b, prev : Entity;
+VAR b, prev : PEntity;
 begin
   prev := stage.bulletHead;
   b := stage.bulletHead^.next;
@@ -946,7 +946,7 @@ begin
 end;
 
 procedure doFighters;
-VAR e, prev : Entity;
+VAR e, prev : PEntity;
 begin
   prev := stage.fighterHead;
   e := stage.fighterHead^.next;
@@ -971,7 +971,7 @@ begin
   end;
 end;
 
-procedure fireAlienbullet(e : Entity);
+procedure fireAlienbullet(e : PEntity);
 VAR dest : TSDL_Rect;
 begin
   NEW(bullet);
@@ -996,7 +996,7 @@ begin
 end;
 
 procedure doEnemies;
-VAR e : Entity;
+VAR e : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -1093,9 +1093,9 @@ begin
 end;
 
 procedure resetStage;
-VAR e  : Entity;
-    ex : Explosion;
-    d  : Debris;
+VAR e  : PEntity;
+    ex : PExplosion;
+    d  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -1239,10 +1239,11 @@ begin
   initHighScoreTable;
   loadMusic;
   playMusic(TRUE);
+  NEW(Event);
 end;
 
 procedure destroyTexture;
-VAR tex : Textur;
+VAR tex : PTextur;
 begin
   tex := app.textureHead^.next;
   while (tex <> NIL) do
@@ -1256,6 +1257,7 @@ end;
 
 procedure cleanUp;
 begin
+  DISPOSE(Event);
   resetStage;
   DISPOSE(stage.pointsHead);
   DISPOSE(stage.debrisHead);
@@ -1271,10 +1273,12 @@ begin
   Mix_FreeChunk(sounds[3]);
   Mix_FreeChunk(sounds[2]);
   Mix_FreeChunk(sounds[1]);
+  if ExitCode <> 0 then WriteLn('CleanUp complete!');
 end;
 
 procedure AtExit;
 begin
+  if ExitCode <> 0 then cleanUp;
   Mix_CloseAudio;
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
@@ -1348,12 +1352,12 @@ end;
 // *****************   MAIN   *****************
 
 begin
+  CLRSCR;
   RANDOMIZE;
   InitSDL;
   AddExitProc(@AtExit);
   initGame;
   initHighScore;
-  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -1363,7 +1367,7 @@ begin
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;
+
   cleanUp;
-  DISPOSE(Event);
   AtExit;
 end.

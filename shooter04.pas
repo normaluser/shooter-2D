@@ -27,25 +27,25 @@ converted from "C" to "Pascal" by Ulrich 2021
 PROGRAM Shooter4;
 
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image;
+USES CRT, SDL2, SDL2_Image;
 
-CONST SCREEN_WIDTH  = 1280;
-      SCREEN_HEIGHT = 720;
+CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
+      SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE { "S_" short for "Struct" from "C" }
-     S_App    = RECORD
+TYPE                                        { "T" short for "TYPE" }
+     TApp    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                   up, down, left, right, fire : integer;
                 end;
-     S_Entity = RECORD
+     TEntity = RECORD
                   x, y, dx, dy, health : integer;
                   Texture : PSDL_Texture;
                 end;
 
-VAR app              : S_App;
+VAR app              : TApp;
     player,
-    bullet           : S_Entity;
+    bullet           : TEntity;
     Event            : PSDL_EVENT;
     exitLoop         : BOOLEAN;
 
@@ -169,14 +169,15 @@ end;
 // *****************   MAIN   *****************
 
 begin
+  CLRSCR;
   InitSDL;
   AddExitProc(@AtExit);
   exitLoop := FALSE;
-  NEW(Event);
   player.Texture := loadTexture('gfx/player.png');
   bullet.Texture := loadTexture('gfx/playerBullet.png');
   player.x := 100;
   player.y := 100;
+  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -196,17 +197,13 @@ begin
     end;
     bullet.x := bullet.x + bullet.dx;
     bullet.y := bullet.y + bullet.dy;
-
-    if (bullet.x > SCREEN_WIDTH) then
-      bullet.health := 0;
-
+    if (bullet.x > SCREEN_WIDTH) then bullet.health := 0;
     blit(player.Texture, player.x, player.y);
-
     if (bullet.health > 0) then blit(bullet.Texture, bullet.x, bullet.y);
-
     presentScene;
     SDL_Delay(16);
   end;
-  AtExit;
+
   DISPOSE(Event);
+  AtExit;
 end.

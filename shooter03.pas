@@ -27,26 +27,27 @@ converted from "C" to "Pascal" by Ulrich 2021
 PROGRAM Shooter3;
 
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image;
+USES CRT, SDL2, SDL2_Image;
 
-CONST SCREEN_WIDTH  = 1280;
-      SCREEN_HEIGHT = 720;
+CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
+      SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE { "S_" short for "Struct" from "C" }
-     S_App    = RECORD
+TYPE                                        { "T" short for "TYPE" }
+     TApp    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                   up, down, left, right : integer;
                 end;
-     S_Entity = RECORD
+     TEntity = RECORD
                   x, y : integer;
                   Texture : PSDL_Texture;
                 end;
 
-VAR app      : S_App;
-    player   : S_Entity;
+VAR app      : TApp;
+    player   : TEntity;
     Event    : PSDL_EVENT;
     exitLoop : BOOLEAN;
+    EMessage : PChar;
 
 // *****************   UTIL   *****************
 
@@ -172,13 +173,14 @@ end;
 // *****************   MAIN   *****************
 
 begin
+  CLRSCR;
   InitSDL;
   AddExitProc(@AtExit);
   exitLoop := FALSE;
-  NEW(Event);
   player.Texture := loadTexture('gfx/player.png');
   player.x := 100;
   player.y := 100;
+  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -192,6 +194,7 @@ begin
     presentScene;
     SDL_Delay(16);
   end;
-  AtExit;
+
   DISPOSE(Event);
+  AtExit;
 end.

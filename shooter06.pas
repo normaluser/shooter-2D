@@ -27,44 +27,44 @@ converted from "C" to "Pascal" by Ulrich 2021
 PROGRAM Shooter6;
 
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image;
+USES CRT, SDL2, SDL2_Image;
 
-CONST SCREEN_WIDTH  = 1280;
-      SCREEN_HEIGHT = 720;
+CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
+      SCREEN_HEIGHT = 720;             { size of the grafic window }
       PLAYER_SPEED  = 4;
       PLAYER_BULLET_SPEED = 20.0;
       RAND_MAX = 3276;
       MAX_KEYBOARD_KEYS = 350;
       FPS = 60;
 
-TYPE { "S_" short for "Struct" from "C" }
+TYPE                                        { "T" short for "TYPE" } 
      Delegating = (Logo, Highsc, Game);
-     S_Delegate = RECORD
+     TDelegate  = RECORD                    { "T" short for "TYPE" }
                     logic, draw : Delegating;
                   end;
-     S_App    = RECORD
-                  Window   : PSDL_Window;
-                  Renderer : PSDL_Renderer;
-                  keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                  Delegate : S_Delegate;
-                end;
-     Entity   = ^S_Entity;
-     S_Entity = RECORD
-                  x, y, dx, dy : double;
-                  w, h, health, reload : integer;
-                  Texture : PSDL_Texture;
-                  next : Entity;
-                end;
-     S_Stage  = RECORD
-                  fighterHead, fighterTail,
-                  bulletHead, bulletTail : Entity;
-                end;
+     TApp       = RECORD
+                    Window   : PSDL_Window;
+                    Renderer : PSDL_Renderer;
+                    keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
+                    Delegate : TDelegate;
+                  end;
+     PEntity    = ^TEntity;                { "P" short for "Pointer" }
+     TEntity    = RECORD
+                    x, y, dx, dy : double;
+                    w, h, health, reload : integer;
+                    Texture : PSDL_Texture;
+                    next : PEntity;
+                  end;
+     TStage     = RECORD
+                    fighterHead, fighterTail,
+                    bulletHead, bulletTail : PEntity;
+                  end;
 
-VAR app                  : S_App;
-    stage                : S_Stage;
+VAR app                  : TApp;
+    stage                : TStage;
     player,
     enemy,
-    bullet               : Entity;
+    bullet               : PEntity;
     CacheEnemyTex,
     CacheBulletTex       : PSDL_Texture;
     Event                : PSDL_EVENT;
@@ -75,9 +75,9 @@ VAR app                  : S_App;
 
 // *****************   INIT   *****************
 
-procedure initEntity(VAR e : Entity);
+procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -120,7 +120,7 @@ end;
 // *****************   Stage  *****************
 
 procedure drawBullets;
-VAR b : Entity;
+VAR b : PEntity;
 begin
   b := stage.bulletHead^.next;
   while (b <> NIL) do
@@ -131,7 +131,7 @@ begin
 end;
 
 procedure drawFighters;
-VAR e : Entity;
+VAR e : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -169,7 +169,7 @@ begin
 end;
 
 procedure doBullets;
-VAR b, prev : Entity;
+VAR b, prev : PEntity;
 begin
   prev := stage.bulletHead;
   b := stage.bulletHead^.next;
@@ -191,7 +191,7 @@ begin
 end;
 
 procedure doFighters;
-VAR e, prev : Entity;
+VAR e, prev : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -281,6 +281,7 @@ begin
   CacheBulletTex    := loadTexture('gfx/playerBullet.png');
   CacheEnemyTex     := loadTexture('gfx/enemy.png');
   enemyspawnTimer   := 0;
+  NEW(Event);
 end;
 
 // ***************   INIT SDL   ***************
@@ -307,8 +308,8 @@ begin
   SDL_ShowCursor(0);
 end;
 
-procedure Loesch_Liste(a : Entity);
-VAR t : Entity;
+procedure Loesch_Liste(a : PEntity);
+VAR t : PEntity;
 begin
   t := a;
   while (t <> NIL) do
@@ -320,14 +321,17 @@ end;
 
 procedure cleanUp;
 begin
+  DISPOSE(Event);
   Loesch_Liste(stage.fighterHead^.next);
   Loesch_Liste(stage.bulletHead^.next);
   DISPOSE(stage.fighterHead);
   DISPOSE(stage.bulletHead);
+  if ExitCode <> 0 then WriteLn('CleanUp complete!');
 end;
 
 procedure AtExit;
 begin
+  if ExitCode <> 0 then cleanUp;
   SDL_DestroyTexture (player^.Texture);
   SDL_DestroyTexture (CacheEnemyTex);
   SDL_DestroyTexture (CacheBulletTex);
@@ -392,6 +396,7 @@ end;
 // *****************   MAIN   *****************
 
 begin
+  CLRSCR;
   RANDOMIZE;
   InitSDL;
   AddExitProc(@AtExit);
@@ -399,7 +404,6 @@ begin
   exitLoop := FALSE;
   gTicks := SDL_GetTicks;
   gRemainder := 0;
-  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -409,7 +413,7 @@ begin
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;
+
   cleanUp;
-  DISPOSE(Event);
   AtExit;
 end.

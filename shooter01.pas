@@ -29,16 +29,16 @@ PROGRAM Shooter1;
 {$COPERATORS OFF}
 USES CRT, SDL2;
 
-CONST SCREEN_WIDTH  = 1280;         { size of the grafic window }
-      SCREEN_HEIGHT = 720;          { size of the grafic window }
+CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
+      SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE                                { "S_" short for "Struct" from "C" }
-     S_App    = RECORD
+TYPE                                        { "T" short for "TYPE" }                                
+     TApp    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                 end;
 
-VAR app      : S_App;
+VAR app      : TApp;
     Event    : PSDL_EVENT;
     exitLoop : BOOLEAN;
 
@@ -120,6 +120,7 @@ begin
     presentScene;
     SDL_Delay(16);
   end;
-  AtExit;
+  
   DISPOSE(Event);
+  AtExit;
 end.

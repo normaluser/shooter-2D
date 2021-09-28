@@ -27,10 +27,10 @@ converted from "C" to "Pascal" by Ulrich 2021
 PROGRAM Shooter12;
 
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
+USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
 
-CONST SCREEN_WIDTH  = 1280;
-      SCREEN_HEIGHT = 720;
+CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
+      SCREEN_HEIGHT = 720;             { size of the grafic window }
       PLAYER_SPEED  = 4.0;
       PLAYER_BULLET_SPEED = 20.0;
       ALIEN_BULLET_SPEED = 8.0;
@@ -58,56 +58,56 @@ CONST SCREEN_WIDTH  = 1280;
       GLYPH_HEIGHT     = 28;
       GLYPH_WIDTH      = 18;
 
-TYPE { "S_" short for "Struct" from "C" }
+TYPE                                        { "T" short for "TYPE" }
      String50 = String[MAX_STRING_LENGTH];
 	 	 Delegating = (Logo, Highsc, Game);
-     S_Delegate = RECORD
+     TDelegate = RECORD
                     logic, draw : Delegating;
                   end;
-     S_App    = RECORD
+     TApp    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                   keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                  Delegate : S_Delegate;
+                  Delegate : TDelegate;
                 end;
-     Entity   = ^S_Entity;
-     S_Entity = RECORD
+     PEntity   = ^TEntity;
+     TEntity = RECORD
                   x, y, dx, dy : double;
                   w, h, health, reload, side : integer;
                   Texture : PSDL_Texture;
-                  next : Entity;
+                  next : PEntity;
                 end;
-     Explosion = ^S_Explosion;
-     S_Explosion = RECORD
+     PExplosion = ^TExplosion;
+     TExplosion = RECORD
                      x, y, dx, dy : double;
                      r, g, b, a : integer;
-                     next : Explosion;
+                     next : PExplosion;
                    end;
-     Debris = ^S_Debris;
-     S_Debris = RECORD
+     PDebris = ^TDebris;
+     TDebris = RECORD
                   x, y, dx, dy : double;
                   rect : TSDL_Rect;
                   Texture : PSDL_Texture;
                   life : integer;
-                  next : Debris;
+                  next : PDebris;
                 end;
-     S_Stage  = RECORD
+     TStage  = RECORD
                   fighterHead,   fighterTail,
                   bulletHead,    bulletTail,
-                  pointsHead,    pointsTail    : Entity;
-                  explosionHead, explosionTail : Explosion;
-                  debrisHead,    debrisTail    : Debris;
+                  pointsHead,    pointsTail    : PEntity;
+                  explosionHead, explosionTail : PExplosion;
+                  debrisHead,    debrisTail    : PDebris;
                   score : integer;
                 end;
-     S_Star   = RECORD
+     TStar   = RECORD
                   x, y, speed : integer;
                 end;
 
-VAR app                  : S_App;
-    stage                : S_Stage;
+VAR app                  : TApp;
+    stage                : TStage;
     player,
     enemy,
-    bullet               : Entity;
+    bullet               : PEntity;
     fontTexture,
     pointsTexture,
     enemyTexture,
@@ -124,25 +124,25 @@ VAR app                  : S_App;
     backgroundX,
     enemyspawnTimer,
     resetTimer           : integer;
-    stars                : Array[0..MAX_STARS] OF S_Star;
+    stars                : Array[0..MAX_STARS] OF TStar;
     music                : PMix_Music;
     sounds               : Array[1..SND_MAX] OF PMix_Chunk;
 
 // *****************   INIT   *****************
 
-procedure initEntity(VAR e : Entity);
+procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
-procedure initDebris(VAR e : Debris);
+procedure initDebris(VAR e : PDebris);
 begin
   e^.x := 0.0;  e^.y := 0.0;  e^.dx := 0.0;  e^.dy := 0.0;
-  e^.life := 0; e^.next := NIL;
+  e^.life := 0; e^.next := NIL; e^.Texture := NIL;
 end;
 
-procedure initExplosion(VAR e : Explosion);
+procedure initExplosion(VAR e : PExplosion);
 begin
   e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0; e^.dy := 0.0;
   e^.r := 0;   e^.g := 0;   e^.b  := 0;   e^.a  := 0;   e^.next := NIL;
@@ -377,7 +377,7 @@ end;
 // *****************   Stage  *****************
 
 procedure drawExplosions;
-VAR e : Explosion;
+VAR e : PExplosion;
 begin
   SDL_SetRenderDrawBlendMode(app.Renderer, SDL_Blendmode_ADD);
   SDL_SetTextureBlendMode(explosionTexture, SDL_Blendmode_ADD);
@@ -393,7 +393,7 @@ begin
 end;
 
 procedure drawDebris;
-VAR d : Debris;
+VAR d : PDebris;
 begin
   d := stage.debrisHead^.next;
   while (d <> NIL) do
@@ -404,7 +404,7 @@ begin
 end;
 
 procedure drawBullets;
-VAR b : Entity;
+VAR b : PEntity;
 begin
   b := stage.bulletHead^.next;
   while (b <> NIL) do
@@ -415,7 +415,7 @@ begin
 end;
 
 procedure drawFighters;
-VAR e : Entity;
+VAR e : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -426,7 +426,7 @@ begin
 end;
 
 procedure drawPointsPods;
-VAR p : Entity;
+VAR p : PEntity;
 begin
   p := stage.pointsHead^.next;
   while (p <> NIL) do
@@ -437,7 +437,7 @@ begin
 end;
 
 procedure addPointsPod(x, y : integer);
-VAR e : Entity;
+VAR e : PEntity;
     dest : TSDL_Rect;
 begin
   NEW(e);
@@ -457,8 +457,8 @@ begin
   e^.y := e^.y - (e^.h DIV 2);
 end;
 
-procedure addDebris(e : Entity);
-VAR d : Debris;
+procedure addDebris(e : PEntity);
+VAR d : PDebris;
     x, y, w, h : integer;
 begin
   w := TRUNC(e^.w / 2);
@@ -490,7 +490,7 @@ begin
 end;
 
 procedure addExplosions(x, y: double; num : integer);
-VAR e : Explosion;
+VAR e : PExplosion;
     i : integer;
 begin
   for i := 0 to PRED(num) do
@@ -520,7 +520,7 @@ begin
 end;
 
 procedure doPointsPods;
-VAR e, prev : Entity;
+VAR e, prev : PEntity;
 begin
   prev := stage.pointsHead;
   e := stage.pointsHead^.next;
@@ -601,7 +601,7 @@ begin
 end;
 
 procedure doDebris;
-VAR d, prev : Debris;
+VAR d, prev : PDebris;
 begin
   prev := stage.debrisHead;
   d := stage.debrisHead^.next;
@@ -625,7 +625,7 @@ begin
 end;
 
 procedure doExplosions;
-VAR e, prev : Explosion;
+VAR e, prev : PExplosion;
 begin
   prev := stage.ExplosionHead;
   e := stage.ExplosionHead^.next;
@@ -647,8 +647,8 @@ begin
   end;
 end;
 
-function bulletHitFighter(b : Entity) : BOOLEAN;    { b = Bullet; e = Fighter }
-VAR e : Entity;
+function bulletHitFighter(b : PEntity) : BOOLEAN;    { b = Bullet; e = Fighter }
+VAR e : PEntity;
 begin
   e := stage.fighterHead^.next;
   bulletHitFighter := FALSE;
@@ -679,7 +679,7 @@ begin
 end;
 
 procedure doBullets;
-VAR b, prev : Entity;
+VAR b, prev : PEntity;
 begin
   prev := stage.bulletHead;
   b := stage.bulletHead^.next;
@@ -702,7 +702,7 @@ begin
 end;
 
 procedure doFighters;
-VAR e, prev : Entity;
+VAR e, prev : PEntity;
 begin
   prev := stage.fighterHead;
   e := stage.fighterHead^.next;
@@ -727,7 +727,7 @@ begin
   end;
 end;
 
-procedure fireAlienbullet(e : Entity);
+procedure fireAlienbullet(e : PEntity);
 VAR dest : TSDL_Rect;
 begin
   NEW(bullet);
@@ -752,7 +752,7 @@ begin
 end;
 
 procedure doEnemies;
-VAR e : Entity;
+VAR e : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -826,9 +826,9 @@ begin
 end;
 
 procedure resetStage;
-VAR e  : Entity;
-    ex : Explosion;
-    d  : Debris;
+VAR e  : PEntity;
+    ex : PExplosion;
+    d  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -937,6 +937,7 @@ begin
   loadMusic;
   playMusic(TRUE);
   resetStage;
+  NEW(Event);
 end;
 
 // ***************   INIT SDL   ***************
@@ -969,6 +970,7 @@ end;
 
 procedure cleanUp;
 begin
+  DISPOSE(Event);
   DISPOSE(player);
   DISPOSE(stage.pointsHead);
   DISPOSE(stage.debrisHead);
@@ -982,10 +984,12 @@ begin
   Mix_FreeChunk(sounds[3]);
   Mix_FreeChunk(sounds[2]);
   Mix_FreeChunk(sounds[1]);
+  if ExitCode <> 0 then WriteLn('CleanUp complete!');
 end;
 
 procedure AtExit;
 begin
+  if ExitCode <> 0 then cleanUp;
   Mix_CloseAudio;
   SDL_DestroyTexture (alienbulletTexture);
   SDL_DestroyTexture (playerTexture);
@@ -1055,6 +1059,7 @@ end;
 // *****************   MAIN   *****************
 
 begin
+  CLRSCR;
   RANDOMIZE;
   InitSDL;
   AddExitProc(@AtExit);
@@ -1066,7 +1071,6 @@ begin
   gRemainder := 0;
   highScore := 0;
   music := NIL;
-  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -1076,8 +1080,8 @@ begin
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;
+
   resetStage;
   cleanUp;
-  DISPOSE(Event);
   AtExit;
 end.

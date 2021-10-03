@@ -52,18 +52,18 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       CH_ALIEN_FIRE    = 1;
 
 TYPE                                        { "T" short for "TYPE" }
-     Delegating = (Logo, Highsc, Game);
-     TDelegate = RECORD
-                    logic, draw : Delegating;
+     TDelegating = (Logo, Highsc, Game);
+     TDelegate  = RECORD
+                    logic, draw : TDelegating;
                   end;
-     TApp    = RECORD
+     TApp     = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                   keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
                   Delegate : TDelegate;
                 end;
-     PEntity   = ^TEntity;
-     TEntity = RECORD
+     PEntity  = ^TEntity;
+     TEntity  = RECORD
                   x, y, dx, dy : double;
                   w, h, health, reload, side : integer;
                   Texture : PSDL_Texture;
@@ -71,25 +71,25 @@ TYPE                                        { "T" short for "TYPE" }
                 end;
      PExplosion = ^TExplosion;
      TExplosion = RECORD
-                     x, y, dx, dy : double;
-                     r, g, b, a : integer;
-                     next : PExplosion;
-                   end;
-     PDebris = ^TDebris;
-     TDebris = RECORD
+                    x, y, dx, dy : double;
+                    r, g, b, a : integer;
+                    next : PExplosion;
+                  end;
+     PDebris  = ^TDebris;
+     TDebris  = RECORD
                   x, y, dx, dy : double;
                   rect : TSDL_Rect;
                   Texture : PSDL_Texture;
                   life : integer;
                   next : PDebris;
                 end;
-     TStage  = RECORD
+     TStage   = RECORD
                   fighterHead,   fighterTail,
                   bulletHead,    bulletTail    : PEntity;
                   explosionHead, explosionTail : PExplosion;
                   debrisHead,    debrisTail    : PDebris;
                 end;
-     TStar   = RECORD
+     TStar    = RECORD
                   x, y, speed : integer;
                 end;
 
@@ -901,7 +901,7 @@ end;
 
 // *************   DELEGATE LOGIC   ***********
 
-procedure delegate_logic(Wahl : Delegating);
+procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Game : begin

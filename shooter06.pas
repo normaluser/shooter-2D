@@ -38,9 +38,9 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       FPS = 60;
 
 TYPE                                        { "T" short for "TYPE" } 
-     Delegating = (Logo, Highsc, Game);
+     TDelegating = (Logo, Highsc, Game);
      TDelegate  = RECORD                    { "T" short for "TYPE" }
-                    logic, draw : Delegating;
+                    logic, draw : TDelegating;
                   end;
      TApp       = RECORD
                     Window   : PSDL_Window;
@@ -383,7 +383,7 @@ end;
 
 // *************   DELEGATE LOGIC   ***********
 
-procedure delegate_logic(Wahl : Delegating);
+procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Game : begin

@@ -61,67 +61,67 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       GLYPH_WIDTH      = 18;
 
 TYPE                                        { "T" short for "TYPE" }
-     String16 = String[MAX_SCORE_NAME_LENGTH];
-     String50 = String[MAX_STRING_LENGTH];
+     TSring16    = String[MAX_SCORE_NAME_LENGTH];
+     TSring50    = String[MAX_STRING_LENGTH];
 
-     Delegating = (Logo, Highsc, Game);
-     TDelegate = RECORD
-                    logic, draw : Delegating;
-                  end;
-     PTextur = ^TTexture;
-     TTexture = RECORD
-                   name : PChar;
-                   Texture : PSDL_Texture;
-                   next : PTextur;
-                 end;
-     TApp    = RECORD
-                  Window   : PSDL_Window;
-                  Renderer : PSDL_Renderer;
-                  keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                  textureHead, textureTail : PTextur;
-                  inputText : String;
-                  Delegate : TDelegate;
-                end;
-     PEntity   = ^TEntity;
-     TEntity = RECORD
-                  x, y, dx, dy : double;
-                  w, h, health, reload, side : integer;
-                  Texture : PSDL_Texture;
-                  next : PEntity;
-                end;
-     PExplosion = ^TExplosion;
-     TExplosion = RECORD
+     TDelegating = (Logo, Highsc, Game);
+     TDelegate   = RECORD
+                     logic, draw : TDelegating;
+                   end;
+     PTextur     = ^TTexture;
+     TTexture    = RECORD
+                     name : PChar;
+                     Texture : PSDL_Texture;
+                     next : PTextur;
+                   end;
+     TApp        = RECORD
+                     Window   : PSDL_Window;
+                     Renderer : PSDL_Renderer;
+                     keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
+                     textureHead, textureTail : PTextur;
+                     inputText : String;
+                     Delegate : TDelegate;
+                   end;
+     PEntity     = ^TEntity;
+     TEntity     = RECORD
+                     x, y, dx, dy : double;
+                     w, h, health, reload, side : integer;
+                     Texture : PSDL_Texture;
+                     next : PEntity;
+                   end;
+     PExplosion  = ^TExplosion;
+     TExplosion  = RECORD
                      x, y, dx, dy : double;
                      r, g, b, a : integer;
                      next : PExplosion;
                    end;
-     PDebris = ^TDebris;
-     TDebris = RECORD
-                  x, y, dx, dy : double;
-                  rect : TSDL_Rect;
-                  Texture : PSDL_Texture;
-                  life : integer;
-                  next : PDebris;
-                end;
-     TStage  = RECORD
-                  fighterHead,   fighterTail,
-                  bulletHead,    bulletTail,
-                  pointsHead,    pointsTail    : PEntity;
-                  explosionHead, explosionTail : PExplosion;
-                  debrisHead,    debrisTail    : PDebris;
-                  score : integer;
-                end;
-     TStar   = RECORD
-                  x, y, speed : integer;
-                end;
-   THighScoreDef = RECORD
-                    name : String16;
-                    recent, score : integer;
-                  end;
-   HighScoreArray =     Array[0..PRED(NUM_HighScores)] OF THighScoreDef;
-   newHighScoresArray = Array[0..NUM_HighScores] OF THighScoreDef;
+     PDebris     = ^TDebris;
+     TDebris     = RECORD
+                     x, y, dx, dy : double;
+                     rect : TSDL_Rect;
+                     Texture : PSDL_Texture;
+                     life : integer;
+                     next : PDebris;
+                   end;
+     TStage      = RECORD
+                     fighterHead,   fighterTail,
+                     bulletHead,    bulletTail,
+                     pointsHead,    pointsTail    : PEntity;
+                     explosionHead, explosionTail : PExplosion;
+                     debrisHead,    debrisTail    : PDebris;
+                     score : integer;
+                   end;
+     TStar       = RECORD
+                     x, y, speed : integer;
+                   end;
+     THighScoreDef = RECORD
+                       name : TSring16;
+                       recent, score : integer;
+                     end;
+     THighScoreArray =     Array[0..PRED(NUM_HighScores)] OF THighScoreDef;
+     TnewHighScoresArray = Array[0..NUM_HighScores] OF THighScoreDef;
 
-   Alignment = (TEXT_LEFT, TEXT_CENTER, TEXT_RIGHT);
+   TAlignment = (TEXT_LEFT, TEXT_CENTER, TEXT_RIGHT);
 
 VAR app                  : TApp;
     stage                : TStage;
@@ -153,7 +153,7 @@ VAR app                  : TApp;
     stars                : Array[0..MAX_STARS] OF TStar;
     music                : PMix_Music;
     sounds               : Array[1..SND_MAX] OF PMix_Chunk;
-    HighScores           : HighScoreArray;
+    HighScores           : THighScoreArray;
     newHighScore         : THighScoreDef;
 
 // *****************   INIT   *****************
@@ -363,7 +363,7 @@ end;
 
 // *****************   TEXT   *****************
 
-procedure drawText(x, y, r, g, b : integer; align : Alignment; outText : String50);
+procedure drawText(x, y, r, g, b : integer; align : TAlignment; outText : TSring50);
 VAR i, len : integer;
     rect : TSDL_Rect;
 begin
@@ -389,7 +389,7 @@ begin
   end;
 end;
 
-function numberfill(a : integer) : String50;
+function numberfill(a : integer) : TSring50;
 VAR FMT : string;
 begin
   Fmt := '[%.3d]';                  { Fmt: arguments for Format }
@@ -409,7 +409,7 @@ begin
   temp := p; p := q; q := temp;
 end;
 
-Procedure Bubble(VAR B : newHighScoresArray; n : integer);
+Procedure Bubble(VAR B : TnewHighScoresArray; n : integer);
 VAR i, j, min : integer;
 begin
   for i := 0 to PRED(n) do
@@ -428,7 +428,7 @@ begin
 end;
 
 procedure addHighScore(score : integer);
-VAR newHighScores : newHighScoresArray;
+VAR newHighScores : TnewHighScoresArray;
     k : integer;
 begin
   for k := 0 to PRED(NUM_HighScores) do
@@ -507,8 +507,8 @@ end;
 
 procedure drawHighScores;
 VAR i, y, r, g, b, o : integer;
-    p : String16;
-    a, Fmt : String50;
+    p : TSring16;
+    a, Fmt : TSring50;
 begin
   p := ' ............';
   y := 150;
@@ -1403,7 +1403,7 @@ end;
 
 // *************   DELEGATE LOGIC   ***********
 
-procedure delegate_logic(Wahl : Delegating);
+procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Logo : begin

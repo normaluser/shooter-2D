@@ -25,7 +25,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter15;
-
+{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => Ansistring }
 {$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
 

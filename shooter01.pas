@@ -26,13 +26,13 @@ converted from "C" to "Pascal" by Ulrich 2021
 
 PROGRAM Shooter1;
 
-{$COPERATORS OFF}
+{$COPERATORS OFF} {$mode FPC} {$H+}
 USES CRT, SDL2;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE                                        { "T" short for "TYPE" }                                
+TYPE                                        { "T" short for "TYPE" }
      TApp    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
@@ -120,7 +120,7 @@ begin
     presentScene;
     SDL_Delay(16);
   end;
-  
+
   DISPOSE(Event);
   AtExit;
 end.

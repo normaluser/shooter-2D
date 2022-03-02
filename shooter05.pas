@@ -26,7 +26,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 
 PROGRAM Shooter5;
 
-{$COPERATORS OFF}
+{$COPERATORS OFF} {$mode FPC} {$H+}
 USES CRT, SDL2, SDL2_Image;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
@@ -36,7 +36,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       MAX_KEYBOARD_KEYS = 350;
 
 TYPE                                        { "T" short for "TYPE" }
-     TDelegating = (Logo, Highsc, Game);
+     TDelegating = (Game);
      TDelegate  = RECORD                    { "T" short for "TYPE" }
                     logic, draw : TDelegating;
                   end;

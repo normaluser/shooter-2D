@@ -26,7 +26,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 
 PROGRAM Shooter10;
 
-{$COPERATORS OFF}
+{$COPERATORS OFF} {$mode FPC} {$H+}
 USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }

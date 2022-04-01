@@ -32,14 +32,14 @@ USES CRT, SDL2;
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE                                        { "T" short for "TYPE" }
-     TApp    = RECORD
+TYPE
+     TApp    = RECORD                       { "T" short for "TYPE" }
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                 end;
 
 VAR app      : TApp;
-    Event    : PSDL_EVENT;
+    Event    : TSDL_EVENT;
     exitLoop : BOOLEAN;
 
 // *****************   DRAW   *****************
@@ -95,9 +95,9 @@ end;
 
 procedure doInput;
 begin
-  while SDL_PollEvent(Event) = 1 do
+  while SDL_PollEvent(@Event) = 1 do
   begin
-    CASE Event^.Type_ of
+    CASE Event.Type_ of
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
     end;  { CASE Event }
@@ -111,7 +111,6 @@ begin
   InitSDL;
   AddExitProc(@AtExit);
   exitLoop := FALSE;
-  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -121,6 +120,5 @@ begin
     SDL_Delay(16);
   end;
 
-  DISPOSE(Event);
   AtExit;
 end.

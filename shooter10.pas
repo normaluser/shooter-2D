@@ -104,7 +104,7 @@ VAR app                  : TApp;
     playerTexture,
     background,
     explosionTexture     : PSDL_Texture;
-    Event                : PSDL_EVENT;
+    Event                : TSDL_EVENT;
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
     gRemainder           : double;
@@ -796,7 +796,6 @@ begin
   background          := loadTexture('gfx/background.png');
   explosionTexture    := loadTexture('gfx/explosion.png');
   resetStage;
-  NEW(Event);
 end;
 
 // ***************   INIT SDL   ***************
@@ -829,7 +828,6 @@ end;
 
 procedure cleanUp;
 begin
-  DISPOSE(Event);
   DISPOSE(player);
   DISPOSE(stage.debrisHead);
   DISPOSE(stage.explosionHead);
@@ -863,22 +861,22 @@ end;
 
 procedure doInput;
 begin
-  while SDL_PollEvent(Event) = 1 do
+  while SDL_PollEvent(@Event) = 1 do
   begin
-    CASE Event^.Type_ of
+    CASE Event.Type_ of
 
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event^.key.keysym.scancode] := 1;
+                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event^.key.keysym.scancode] := 0;
+                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }
   end;    { SDL_PollEvent }

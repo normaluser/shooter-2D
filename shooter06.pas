@@ -37,8 +37,8 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       MAX_KEYBOARD_KEYS = 350;
       FPS = 60;
 
-TYPE                                        { "T" short for "TYPE" }
-     TDelegating = (Game);
+TYPE
+     TDelegating = (Game);                  { "T" short for "TYPE" }
      TDelegate  = RECORD                    { "T" short for "TYPE" }
                     logic, draw : TDelegating;
                   end;
@@ -48,14 +48,14 @@ TYPE                                        { "T" short for "TYPE" }
                     keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
                     Delegate : TDelegate;
                   end;
-     PEntity    = ^TEntity;                { "P" short for "Pointer" }
-     TEntity    = RECORD
+     PEntity    = ^TEntity;              { "P" short for "Pointer" }
+     TEntity    = RECORD                    { "T" short for "TYPE" }
                     x, y, dx, dy : double;
                     w, h, health, reload : integer;
                     Texture : PSDL_Texture;
                     next : PEntity;
                   end;
-     TStage     = RECORD
+     TStage     = RECORD                    { "T" short for "TYPE" }
                     fighterHead, fighterTail,
                     bulletHead, bulletTail : PEntity;
                   end;
@@ -67,7 +67,7 @@ VAR app                  : TApp;
     bullet               : PEntity;
     CacheEnemyTex,
     CacheBulletTex       : PSDL_Texture;
-    Event                : PSDL_EVENT;
+    Event                : TSDL_EVENT;
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
     gRemainder           : double;
@@ -281,7 +281,6 @@ begin
   CacheBulletTex    := loadTexture('gfx/playerBullet.png');
   CacheEnemyTex     := loadTexture('gfx/enemy.png');
   enemyspawnTimer   := 0;
-  NEW(Event);
 end;
 
 // ***************   INIT SDL   ***************
@@ -321,7 +320,6 @@ end;
 
 procedure cleanUp;
 begin
-  DISPOSE(Event);
   Loesch_Liste(stage.fighterHead^.next);
   Loesch_Liste(stage.bulletHead^.next);
   DISPOSE(stage.fighterHead);
@@ -345,22 +343,22 @@ end;
 
 procedure doInput;
 begin
-  while SDL_PollEvent(Event) = 1 do
+  while SDL_PollEvent(@Event) = 1 do
   begin
-    CASE Event^.Type_ of
+    CASE Event.Type_ of
 
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event^.key.keysym.scancode] := 1;
+                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event^.key.keysym.scancode] := 0;
+                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }
   end;    { SDL_PollEvent }

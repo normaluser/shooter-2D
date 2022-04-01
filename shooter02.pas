@@ -44,7 +44,7 @@ TYPE                                        { "T" short for "TYPE" }
 
 VAR app      : TApp;
     player   : TEntity;
-    Event    : PSDL_EVENT;
+    Event    : TSDL_EVENT;
     exitLoop : BOOLEAN;
 
 // *****************   UTIL   *****************
@@ -126,11 +126,11 @@ end;
 
 procedure doInput;
 begin
-  while SDL_PollEvent(Event) = 1 do
+  while SDL_PollEvent(@Event) = 1 do
   begin
-    CASE Event^.Type_ of
+    CASE Event.Type_ of
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
-      SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }	
+      SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
     end;  { CASE Event }
   end;    { SDL_PollEvent }
 end;
@@ -145,7 +145,6 @@ begin
   player.Texture := loadTexture('gfx/player.png');
   player.x := 100;
   player.y := 100;
-  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -156,6 +155,5 @@ begin
     SDL_Delay(16);
   end;
 
-  DISPOSE(Event);
   AtExit;
 end.

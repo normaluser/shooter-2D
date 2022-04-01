@@ -46,7 +46,7 @@ TYPE                                        { "T" short for "TYPE" }
 VAR app              : TApp;
     player,
     bullet           : TEntity;
-    Event            : PSDL_EVENT;
+    Event            : TSDL_EVENT;
     exitLoop         : BOOLEAN;
 
 // *****************   UTIL   *****************
@@ -122,9 +122,9 @@ end;
 
 procedure doKeyDown;
 begin
-  if Event^.key._repeat = 0 then
+  if Event.key._repeat = 0 then
   begin
-    CASE Event^.key.keysym.sym of
+    CASE Event.key.keysym.sym of
       SDLK_ESCAPE: exitLoop := TRUE;                { close Window with ESC-Key }
 
       SDLK_LEFT,  SDLK_KP_4: app.left  := 1;
@@ -138,9 +138,9 @@ end;
 
 procedure doKeyUp;
 begin
-  if Event^.key._repeat = 0 then
+  if Event.key._repeat = 0 then
   begin
-    CASE Event^.key.keysym.sym of
+    CASE Event.key.keysym.sym of
       SDLK_LEFT,   SDLK_KP_4: app.left  := 0;
       SDLK_RIGHT,  SDLK_KP_6: app.right := 0;
       SDLK_UP,     SDLK_KP_8: app.up    := 0;
@@ -152,9 +152,9 @@ end;
 
 procedure doInput;
 begin
-  while SDL_PollEvent(Event) = 1 do
+  while SDL_PollEvent(@Event) = 1 do
   begin
-    CASE Event^.Type_ of
+    CASE Event.Type_ of
 
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
@@ -177,7 +177,6 @@ begin
   bullet.Texture := loadTexture('gfx/playerBullet.png');
   player.x := 100;
   player.y := 100;
-  NEW(Event);
 
   while exitLoop = FALSE do
   begin
@@ -204,6 +203,5 @@ begin
     SDL_Delay(16);
   end;
 
-  DISPOSE(Event);
   AtExit;
 end.

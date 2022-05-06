@@ -170,13 +170,6 @@ begin
   e^.r := 0;   e^.g := 0;   e^.b  := 0;   e^.a  := 0;   e^.next := NIL;
 end;
 
-procedure initTex(VAR te : PTextur);
-begin
-  te^.name := '';
-  te^.Texture := NIL;
-  te^.next := NIL;
-end;
-
 procedure initStageListenPointer;
 begin
   NEW(app.textureHead);
@@ -186,7 +179,10 @@ begin
   NEW(stage.debrisHead);
   NEW(stage.pointsHead);
 
-  initTex(app.textureHead);
+  app.textureHead^.name := '';
+  app.textureHead^.Texture := NIL;
+  app.textureHead^.next := NIL;
+
   initEntity(stage.fighterHead);
   initEntity(stage.bulletHead);
   initExplosion(stage.explosionHead);
@@ -305,43 +301,43 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
 end;
 
-procedure addTextureToCache(name : PChar; SDLTexture : PSDL_Texture);
-VAR t : PTextur;
+procedure addTextureToCache(Lname : PChar; LTexture : PSDL_Texture);
+VAR cache : PTextur;
 begin
-  NEW(t);
-  initTex(t);
-  app.textureTail^.next := t;
-  app.textureTail := t;
-  t^.name := name;
-  t^.Texture := SDLTexture;
+  NEW(cache);
+
+  app.textureTail^.next := cache;
+  app.textureTail := cache;
+  cache^.name := Lname;
+  cache^.Texture := LTexture;
+  cache^.next := NIL;
 end;
 
 function getTexture(name : PChar) : PSDL_Texture;
-VAR t : PTextur;
+VAR tg : PTextur;
 begin
   getTexture := NIL;
-  t := app.textureHead^.next;
-  while (t <> NIL) do
+  tg := app.textureHead^.next;
+  while (tg <> NIL) do
   begin
     //if (t^.name = name)
-    if compareText(t^.name, name) = 0
-      then getTexture := t^.Texture
-      else getTexture := NIL;
-    t := t^.next;
+    if compareText(tg^.name, name) = 0
+      then getTexture := tg^.Texture;
+    tg := tg^.next;
   end;
 end;
 
 function loadTexture(Pfad : PChar) : PSDL_Texture;
-VAR t : PSDL_Texture;
+VAR tl : PSDL_Texture;
 begin
-  t := getTexture(Pfad);
-  if t = NIL then
+  tl := getTexture(Pfad);
+  if tl = NIL then
   begin
-    t := IMG_LoadTexture(app.Renderer, Pfad);
-    if t = NIL then errorMessage(SDL_GetError());
-    addTextureToCache(Pfad, t);
+    tl := IMG_LoadTexture(app.Renderer, Pfad);
+    if tl = NIL then errorMessage(SDL_GetError());
+    addTextureToCache(Pfad, tl);
   end;
-  loadTexture := t;
+  loadTexture := tl;
 end;
 
 procedure prepareScene;

@@ -67,7 +67,7 @@ TYPE                                        { "T" short for "TYPE" }
                    end;
      PTextur     = ^TTexture;
      TTexture    = RECORD
-                     name : PChar;
+                     name : string;
                      Texture : PSDL_Texture;
                      next : PTextur;
                    end;
@@ -216,9 +216,9 @@ begin
   end;
 end;
 
-procedure errorMessage(Message : PChar);
+procedure errorMessage(Message : string);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',PChar(message),NIL);
   HALT(1);
 end;
 
@@ -293,7 +293,7 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
 end;
 
-procedure addTextureToCache(Lname : PChar; LTexture : PSDL_Texture);
+procedure addTextureToCache(Lname : string; LTexture : PSDL_Texture);
 VAR cache : PTextur;
 begin
   NEW(cache);
@@ -305,27 +305,27 @@ begin
   cache^.next := NIL;
 end;
 
-function getTexture(name : PChar) : PSDL_Texture;
+function getTexture(name : string) : PSDL_Texture;
 VAR tg : PTextur;
 begin
   getTexture := NIL;
   tg := app.textureHead^.next;
   while (tg <> NIL) do
   begin
-    //if (t^.name = name)
-    if compareText(tg^.name, name) = 0
+    if (tg^.name = name)
+    //if compareText(tg^.name, name) = 0
       then getTexture := tg^.Texture;
     tg := tg^.next;
   end;
 end;
 
-function loadTexture(Pfad : PChar) : PSDL_Texture;
+function loadTexture(Pfad : string) : PSDL_Texture;
 VAR tl : PSDL_Texture;
 begin
   tl := getTexture(Pfad);
   if tl = NIL then
   begin
-    tl := IMG_LoadTexture(app.Renderer, Pfad);
+    tl := IMG_LoadTexture(app.Renderer, PChar(Pfad));
     if tl = NIL then errorMessage(SDL_GetError());
     addTextureToCache(Pfad, tl);
   end;

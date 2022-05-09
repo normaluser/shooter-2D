@@ -70,7 +70,7 @@ TYPE                                        { "T" short for "TYPE" }
                    end;
      PTextur     = ^TTexture;
      TTexture    = RECORD
-                     name : PChar;
+                     name : string;
                      Texture : PSDL_Texture;
                      next : PTextur;
                    end;
@@ -234,9 +234,9 @@ begin
   end;
 end;
 
-procedure errorMessage(Message : PChar);
+procedure errorMessage(Message : string);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',PChar(message),NIL);
   HALT(1);
 end;
 
@@ -311,7 +311,7 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
 end;
 
-procedure addTextureToCache(Lname : PChar; LTexture : PSDL_Texture);
+procedure addTextureToCache(Lname : string; LTexture : PSDL_Texture);
 VAR cache : PTextur;
 begin
   NEW(cache);
@@ -322,27 +322,27 @@ begin
   cache^.Texture := LTexture;
 end;
 
-function getTexture(name : PChar) : PSDL_Texture;
+function getTexture(name : string) : PSDL_Texture;
 VAR tg : PTextur;
 begin
   getTexture := NIL;
   tg := app.textureHead^.next;
   while (tg <> NIL) do
   begin
-    //if (t^.name = name)
-    if compareText(tg^.name, name) = 0
+    if (tg^.name = name)
+    //if compareText(tg^.name, name) = 0
       then getTexture := tg^.Texture;
     tg := tg^.next;
   end;
 end;
 
-function loadTexture(Pfad : PChar) : PSDL_Texture;
+function loadTexture(Pfad : string) : PSDL_Texture;
 VAR tl : PSDL_Texture;
 begin
   tl := getTexture(Pfad);
   if tl = NIL then
   begin
-    tl := IMG_LoadTexture(app.Renderer, Pfad);
+    tl := IMG_LoadTexture(app.Renderer, PChar(Pfad));
     if tl = NIL then errorMessage(SDL_GetError());
     addTextureToCache(Pfad, tl);
   end;
@@ -1327,13 +1327,13 @@ procedure cleanUp;
 VAR i : byte;
 begin
   resetStage;
-  if stage.fighterHead   <> NIL then DISPOSE(stage.fighterHead);
-  if stage.bulletHead    <> NIL then DISPOSE(stage.bulletHead);
-  if stage.explosionHead <> NIL then DISPOSE(stage.explosionHead);
-  if stage.debrisHead    <> NIL then DISPOSE(stage.debrisHead);
-  if stage.pointsHead    <> NIL then DISPOSE(stage.pointsHead);
+  if stage.fighterHead   <> NIL then begin DISPOSE(stage.fighterHead); end;
+  if stage.bulletHead    <> NIL then begin DISPOSE(stage.bulletHead); end;
+  if stage.explosionHead <> NIL then begin DISPOSE(stage.explosionHead); end;
+  if stage.debrisHead    <> NIL then begin DISPOSE(stage.debrisHead); end;
+  if stage.pointsHead    <> NIL then begin DISPOSE(stage.pointsHead); end;
   destroyTexture;
-  if app.textureHead     <> NIL then DISPOSE(app.textureHead);
+  if app.textureHead     <> NIL then begin DISPOSE(app.textureHead); end;
 
   for i := 5 downto 1 do
     Mix_FreeChunk(sounds[i]);

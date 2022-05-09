@@ -51,9 +51,9 @@ VAR app              : TApp;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage(Message : PChar);
+procedure errorMessage(Message : string);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',PChar(message),NIL);
   HALT(1);
 end;
 
@@ -68,9 +68,9 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, NIL, @dest);
 end;
 
-function loadTexture(Pfad : PChar) : PSDL_Texture;
+function loadTexture(Pfad : string) : PSDL_Texture;
 begin
-  loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
+  loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
   if loadTexture = NIL then errorMessage(SDL_GetError());
 end;
 

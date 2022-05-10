@@ -36,7 +36,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       ALIEN_BULLET_SPEED = 8.0;
       RAND_MAX = 3276;
       MAX_KEYBOARD_KEYS = 350;
-      MAX_String_LENGTH = 50;
+      MAX_STRING_LENGTH = 50;
       SIDE_PLAYER = 0;
       SIDE_ALIEN = 1;
       FPS = 60;
@@ -56,7 +56,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       GLYPH_WIDTH      = 18;
 
 TYPE                                        { "T" short for "TYPE" }
-     TString50   = String[MAX_String_LENGTH];
+     TString50   = String[MAX_STRING_LENGTH];
      TDelegating = (Logo, Highsc, Game);
      TDelegate   = RECORD
                      logic, draw : TDelegating;
@@ -65,7 +65,7 @@ TYPE                                        { "T" short for "TYPE" }
                      Window   : PSDL_Window;
                      Renderer : PSDL_Renderer;
                      keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                     Delegate : TDelegate;
+                     delegate : TDelegate;
                    end;
      PEntity     = ^TEntity;
      TEntity     = RECORD
@@ -111,7 +111,7 @@ VAR app                  : TApp;
     playerTexture,
     background,
     explosionTexture     : PSDL_Texture;
-    Event                : TSDL_EVENT;
+    Event                : TSDL_Event;
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
     gRemainder           : double;
@@ -828,8 +828,8 @@ end;
 
 procedure initStage;
 begin
-  app.Delegate.logic := Game;
-  app.Delegate.draw  := Game;
+  app.delegate.logic := Game;
+  app.delegate.draw  := Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   NEW(stage.explosionHead);
@@ -952,9 +952,9 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   Delegate LOGIC   ***********
+// *************   DELEGATE LOGIC   ***********
 
-procedure Delegate_logic(Wahl : TDelegating);
+procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Game : begin
@@ -985,7 +985,7 @@ begin
   begin
     prepareScene;
     doInput;
-    Delegate_logic(app.Delegate.logic);
+    delegate_logic(app.delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

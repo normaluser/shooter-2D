@@ -44,7 +44,7 @@ TYPE                                        { "T" short for "TYPE" }
                     Window   : PSDL_Window;
                     Renderer : PSDL_Renderer;
                     keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                    Delegate : TDelegate;
+                    delegate : TDelegate;
                   end;
      PEntity    = ^TEntity;                { "P" short for "Pointer" }
      TEntity    = RECORD
@@ -63,7 +63,7 @@ VAR app              : TApp;
     player,
     bullet           : PEntity;
     CacheBulletTex   : PSDL_Texture;
-    Event            : TSDL_EVENT;
+    Event            : TSDL_Event;
     exitLoop         : BOOLEAN;
     gTicks           : UInt32;
     gRemainder       : double;
@@ -219,8 +219,8 @@ end;
 
 procedure initStage;
 begin
-  app.Delegate.logic := Game;
-  app.Delegate.draw  := Game;
+  app.delegate.logic := Game;
+  app.delegate.draw  := Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   initEntity(stage.fighterHead);
@@ -326,9 +326,9 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   Delegate LOGIC   ***********
+// *************   DELEGATE LOGIC   ***********
 
-procedure Delegate_logic(Wahl : TDelegating);
+procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Game : begin
@@ -353,7 +353,7 @@ begin
   begin
     prepareScene;
     doInput;
-    Delegate_logic(app.Delegate.logic);
+    delegate_logic(app.delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

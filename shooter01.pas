@@ -39,7 +39,7 @@ TYPE
                 end;
 
 VAR app      : TApp;
-    Event    : TSDL_EVENT;
+    Event    : TSDL_Event;
     exitLoop : BOOLEAN;
 
 // *****************   DRAW   *****************

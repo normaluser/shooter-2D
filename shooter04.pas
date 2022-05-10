@@ -46,7 +46,7 @@ TYPE                                        { "T" short for "TYPE" }
 VAR app              : TApp;
     player,
     bullet           : TEntity;
-    Event            : TSDL_EVENT;
+    Event            : TSDL_Event;
     exitLoop         : BOOLEAN;
 
 // *****************   UTIL   *****************

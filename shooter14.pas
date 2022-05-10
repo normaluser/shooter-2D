@@ -39,7 +39,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       NUM_HighScores = 8;
       MAX_KEYBOARD_KEYS = 350;
       MAX_SCORE_NAME_LENGTH = 16;
-      MAX_String_LENGTH = 50;
+      MAX_STRING_LENGTH = 50;
       SIDE_PLAYER = 0;
       SIDE_ALIEN = 1;
       FPS = 60;
@@ -62,7 +62,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
 
 TYPE                                        { "T" short for "TYPE" }
      TString16   = String[MAX_SCORE_NAME_LENGTH];
-     TString50   = String[MAX_String_LENGTH];
+     TString50   = String[MAX_STRING_LENGTH];
      TDelegating = (Logo, Highsc, Game);
      TDelegate   = RECORD
                      logic, draw : TDelegating;
@@ -79,7 +79,7 @@ TYPE                                        { "T" short for "TYPE" }
                      keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
                      textureHead, textureTail : PTextur;
                      inputText : String;
-                     Delegate : TDelegate;
+                     delegate : TDelegate;
                    end;
      PEntity     = ^TEntity;
      TEntity     = RECORD
@@ -135,7 +135,7 @@ VAR app                  : TApp;
     playerTexture,
     background,
     explosionTexture     : PSDL_Texture;
-    Event                : TSDL_EVENT;
+    Event                : TSDL_Event;
     newHighScoreFlag,
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
@@ -525,8 +525,8 @@ end;
 procedure initHighScore;
 begin
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
-  app.Delegate.logic := HighSC;
-  app.Delegate.draw  := HighSC;
+  app.delegate.logic := HighSC;
+  app.delegate.draw  := HighSC;
 end;
 
 procedure initHighScoreTable;
@@ -1147,8 +1147,8 @@ end;
 
 procedure initStage;
 begin
-  app.Delegate.logic := Game;
-  app.Delegate.draw  := Game;
+  app.delegate.logic := Game;
+  app.delegate.draw  := Game;
   bulletTexture      := loadTexture('gfx/playerBullet.png');
   enemyTexture       := loadTexture('gfx/enemy.png');
   alienbulletTexture := loadTexture('gfx/alienBullet.png');
@@ -1327,9 +1327,9 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   Delegate LOGIC   ***********
+// *************   DELEGATE LOGIC   ***********
 
-procedure Delegate_logic(Wahl : TDelegating);
+procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   HighSC : begin
@@ -1357,7 +1357,7 @@ begin
   begin
     prepareScene;
     doInput;
-    Delegate_logic(app.Delegate.logic);
+    delegate_logic(app.delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

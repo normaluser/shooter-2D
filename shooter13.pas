@@ -38,7 +38,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       RAND_MAX = 3276;
       NUM_HighScores = 8;
       MAX_KEYBOARD_KEYS = 350;
-      MAX_STRING_LENGTH = 50;
+      MAX_String_LENGTH = 50;
       SIDE_PLAYER = 0;
       SIDE_ALIEN = 1;
       FPS = 60;
@@ -60,14 +60,14 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       GLYPH_WIDTH      = 18;
 
 TYPE                                        { "T" short for "TYPE" }
-     TSring50    = String[MAX_STRING_LENGTH];
+     TString50   = String[MAX_String_LENGTH];
      TDelegating = (Logo, Highsc, Game);
      TDelegate   = RECORD
                      logic, draw : TDelegating;
                    end;
      PTextur     = ^TTexture;
      TTexture    = RECORD
-                     name : string;
+                     name : String;
                      Texture : PSDL_Texture;
                      next : PTextur;
                    end;
@@ -216,9 +216,9 @@ begin
   end;
 end;
 
-procedure errorMessage(Message : string);
+procedure errorMessage(Message : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',PChar(message),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
   HALT(1);
 end;
 
@@ -293,7 +293,7 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
 end;
 
-procedure addTextureToCache(Lname : string; LTexture : PSDL_Texture);
+procedure addTextureToCache(Lname : String; LTexture : PSDL_Texture);
 VAR cache : PTextur;
 begin
   NEW(cache);
@@ -305,7 +305,7 @@ begin
   cache^.next := NIL;
 end;
 
-function getTexture(name : string) : PSDL_Texture;
+function getTexture(name : String) : PSDL_Texture;
 VAR tg : PTextur;
 begin
   getTexture := NIL;
@@ -319,7 +319,7 @@ begin
   end;
 end;
 
-function loadTexture(Pfad : string) : PSDL_Texture;
+function loadTexture(Pfad : String) : PSDL_Texture;
 VAR tl : PSDL_Texture;
 begin
   tl := getTexture(Pfad);
@@ -345,7 +345,7 @@ end;
 
 // *****************   TEXT   *****************
 
-procedure drawText(x, y, r, g, b : integer; outText : TSring50);
+procedure drawText(x, y, r, g, b : integer; outText : TString50);
 VAR i, len : integer;
     rect : TSDL_Rect;
 begin
@@ -367,11 +367,11 @@ begin
   end;
 end;
 
-function numberfill(a : integer) : TSring50;
-VAR FMT : string;
+function numberfill(a : integer) : TString50;
+VAR FMT : String;
 begin
   Fmt := '[%.3d]';                  { Fmt: arguments for Format }
-  numberfill := Format(Fmt, [a]);   { Format: format a string with given arguments (=> Fmt) }
+  numberfill := Format(Fmt, [a]);   { Format: format a String with given arguments (=> Fmt) }
 end;
 
 procedure drawHud;
@@ -435,7 +435,7 @@ end;
 
 procedure drawHighScores;
 VAR i, y : integer;
-    a : TSring50;
+    a : TString50;
 begin
   y := 150;
   drawText(425, 70, 255, 255, 255, 'HIGHSCORES');
@@ -458,8 +458,8 @@ end;
 procedure initHighScore;
 begin
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
-  app.delegate.logic := HighSC;
-  app.delegate.draw  := HighSC;
+  app.Delegate.logic := HighSC;
+  app.Delegate.draw  := HighSC;
 end;
 
 procedure initHighScoreTable;
@@ -1069,8 +1069,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.Delegate.logic := Game;
+  app.Delegate.draw  := Game;
   bulletTexture      := loadTexture('gfx/playerBullet.png');
   enemyTexture       := loadTexture('gfx/enemy.png');
   alienbulletTexture := loadTexture('gfx/alienBullet.png');
@@ -1233,9 +1233,9 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   DELEGATE LOGIC   ***********
+// *************   Delegate LOGIC   ***********
 
-procedure delegate_logic(Wahl : TDelegating);
+procedure Delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   HighSC : begin
@@ -1263,7 +1263,7 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    Delegate_logic(app.Delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

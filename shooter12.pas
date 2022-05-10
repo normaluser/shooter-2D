@@ -37,7 +37,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       POINTSPOD_TIME = 10;
       RAND_MAX = 3276;
       MAX_KEYBOARD_KEYS = 350;
-      MAX_STRING_LENGTH = 50;
+      MAX_String_LENGTH = 50;
       SIDE_PLAYER = 0;
       SIDE_ALIEN = 1;
       FPS = 60;
@@ -59,49 +59,49 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       GLYPH_WIDTH      = 18;
 
 TYPE                                        { "T" short for "TYPE" }
-     TSring50 = String[MAX_STRING_LENGTH];
+     TString50   = String[MAX_String_LENGTH];
 	 TDelegating = (Logo, Highsc, Game);
-     TDelegate = RECORD
-                    logic, draw : TDelegating;
-                  end;
-     TApp     = RECORD
-                  Window   : PSDL_Window;
-                  Renderer : PSDL_Renderer;
-                  keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                  Delegate : TDelegate;
-                end;
-     PEntity  = ^TEntity;
-     TEntity  = RECORD
-                  x, y, dx, dy : double;
-                  w, h, health, reload, side : integer;
-                  Texture : PSDL_Texture;
-                  next : PEntity;
-                end;
-     PExplosion = ^TExplosion;
-     TExplosion = RECORD
-                    x, y, dx, dy : double;
-                    r, g, b, a : integer;
-                    next : PExplosion;
-                  end;
-     PDebris  = ^TDebris;
-     TDebris  = RECORD
-                  x, y, dx, dy : double;
-                  rect : TSDL_Rect;
-                  Texture : PSDL_Texture;
-                  life : integer;
-                  next : PDebris;
-                end;
-     TStage   = RECORD
-                  fighterHead,   fighterTail,
-                  bulletHead,    bulletTail,
-                  pointsHead,    pointsTail    : PEntity;
-                  explosionHead, explosionTail : PExplosion;
-                  debrisHead,    debrisTail    : PDebris;
-                  score : integer;
-                end;
-     TStar    = RECORD
-                  x, y, speed : integer;
-                end;
+     TDelegate   = RECORD
+                     logic, draw : TDelegating;
+                   end;
+     TApp        = RECORD
+                     Window   : PSDL_Window;
+                     Renderer : PSDL_Renderer;
+                     keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
+                     Delegate : TDelegate;
+                   end;
+     PEntity     = ^TEntity;
+     TEntity     = RECORD
+                     x, y, dx, dy : double;
+                     w, h, health, reload, side : integer;
+                     Texture : PSDL_Texture;
+                     next : PEntity;
+                   end;
+     PExplosion  = ^TExplosion;
+     TExplosion  = RECORD
+                     x, y, dx, dy : double;
+                     r, g, b, a : integer;
+                     next : PExplosion;
+                   end;
+     PDebris     = ^TDebris;
+     TDebris     = RECORD
+                     x, y, dx, dy : double;
+                     rect : TSDL_Rect;
+                     Texture : PSDL_Texture;
+                     life : integer;
+                     next : PDebris;
+                   end;
+     TStage      = RECORD
+                     fighterHead,   fighterTail,
+                     bulletHead,    bulletTail,
+                     pointsHead,    pointsTail    : PEntity;
+                     explosionHead, explosionTail : PExplosion;
+                     debrisHead,    debrisTail    : PDebris;
+                     score : integer;
+                   end;
+     TStar       = RECORD
+                     x, y, speed : integer;
+                   end;
 
 VAR app                  : TApp;
     stage                : TStage;
@@ -177,9 +177,9 @@ begin
   end;
 end;
 
-procedure errorMessage(Message : string);
+procedure errorMessage(Message : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',PChar(message),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
   HALT(1);
 end;
 
@@ -254,7 +254,7 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
 end;
 
-function loadTexture(Pfad : string) : PSDL_Texture;
+function loadTexture(Pfad : String) : PSDL_Texture;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
   if loadTexture = NIL then errorMessage(SDL_GetError());
@@ -273,7 +273,7 @@ end;
 
 // *****************   TEXT   *****************
 
-procedure drawText(x, y, r, g, b : integer; outText : TSring50);
+procedure drawText(x, y, r, g, b : integer; outText : TString50);
 VAR i, len : integer;
     rect : TSDL_Rect;
 begin
@@ -295,7 +295,7 @@ begin
   end;
 end;
 
-function numberfill(a : integer) : TSring50;
+function numberfill(a : integer) : TString50;
 begin
   if (a >= 100) then            begin numberfill :=        IntToStr(a); end;
   if (a < 100) AND (a > 9) then begin numberfill :=  '0' + IntToStr(a); end;
@@ -910,8 +910,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.Delegate.logic := Game;
+  app.Delegate.draw  := Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   NEW(stage.explosionHead);
@@ -1042,9 +1042,9 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   DELEGATE LOGIC   ***********
+// *************   Delegate LOGIC   ***********
 
-procedure delegate_logic(Wahl : TDelegating);
+procedure Delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Game : begin
@@ -1074,7 +1074,7 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    Delegate_logic(app.Delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

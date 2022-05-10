@@ -164,9 +164,9 @@ begin
   end;
 end;
 
-procedure errorMessage(Message : string);
+procedure errorMessage(Message : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',PChar(message),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
   HALT(1);
 end;
 
@@ -243,7 +243,7 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
 end;
 
-function loadTexture(Pfad : string) : PSDL_Texture;
+function loadTexture(Pfad : String) : PSDL_Texture;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
   if loadTexture = NIL then errorMessage(SDL_GetError());
@@ -775,8 +775,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.Delegate.logic := Game;
+  app.Delegate.draw  := Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   NEW(stage.explosionHead);
@@ -897,9 +897,9 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   DELEGATE LOGIC   ***********
+// *************   Delegate LOGIC   ***********
 
-procedure delegate_logic(Wahl : TDelegating);
+procedure Delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Game : begin
@@ -926,7 +926,7 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    Delegate_logic(app.Delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

@@ -104,7 +104,7 @@ VAR app                  : TApp;
     playerTexture,
     background,
     explosionTexture     : PSDL_Texture;
-    Event                : TSDL_Event;
+    Event                : TSDL_EVENT;
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
     gRemainder           : double;

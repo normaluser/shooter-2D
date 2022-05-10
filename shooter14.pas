@@ -135,7 +135,7 @@ VAR app                  : TApp;
     playerTexture,
     background,
     explosionTexture     : PSDL_Texture;
-    Event                : TSDL_Event;
+    Event                : TSDL_EVENT;
     newHighScoreFlag,
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;

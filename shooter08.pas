@@ -72,7 +72,7 @@ VAR app                  : TApp;
     bulletTexture,
     alienbulletTexture,
     playerTexture        : PSDL_Texture;
-    Event                : TSDL_Event;
+    Event                : TSDL_EVENT;
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
     gRemainder           : double;

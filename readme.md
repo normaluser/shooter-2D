@@ -21,7 +21,7 @@ a good installation guide for SDL2 and the SDL2-headerfiles can be found at:  ht
 # Why ?
 
 Because this was the best complete tutorial i found on the net which explains in easy steps how to program a game with SDL2. 
-And I want to learn how to use SDL2 to get easy acess to graphic, sound and input.
+And I want to learn how to use SDL2 to get easy access to graphic, sound and input.
 
 # Bugs / Contributions 
 

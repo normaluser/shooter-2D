@@ -40,7 +40,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       FPS = 60;
 
 TYPE                                        { "T" short for "TYPE" }
-     TDelegating = (Logo, Highsc, Game);
+     TDelegating = Procedure;
      TDelegate = RECORD
                     logic, draw : TDelegating;
                   end;
@@ -304,8 +304,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.delegate.logic := @logic_Game;
+  app.delegate.draw  := @draw_Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   initEntity(stage.fighterHead);
@@ -413,18 +413,6 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   DELEGATE LOGIC   ***********
-
-procedure delegate_logic(Wahl : TDelegating);
-begin
-  CASE Wahl of
-  Game : begin
-           logic_Game;
-           draw_Game;
-         end;
-  end;
-end;
-
 // *****************   MAIN   *****************
 
 begin
@@ -441,7 +429,8 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    app.delegate.logic;
+    app.delegate.draw;
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

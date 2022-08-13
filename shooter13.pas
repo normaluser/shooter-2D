@@ -61,7 +61,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
 
 TYPE                                        { "T" short for "TYPE" }
      TString50   = String[MAX_STRING_LENGTH];
-     TDelegating = (Logo, Highsc, Game);
+     TDelegating = procedure; //(Logo, Highsc, Game);
      TDelegate   = RECORD
                      logic, draw : TDelegating;
                    end;
@@ -385,91 +385,6 @@ end;
 procedure initFonts;
 begin
   fontTexture := loadTexture('gfx/font.png');
-end;
-
-// ***************  HIGHSCORE  ****************
-
-Procedure Order(VAR p, q : integer);
-VAR temp : integer;
-begin
-  temp := p; p := q; q := temp;
-end;
-
-Procedure Bubble(VAR B : TnewHighScoresArray; n : integer);
-VAR i, j, min : integer;
-begin
-  for i := 0 to PRED(n) do
-  begin
-    min := i;
-    for j := SUCC(i) to n do
-    begin
-      if (B[min].score < B[j].score) then min := j;
-      if B[i].score < B[min].score then
-      begin
-        Order(B[i].score,  B[min].score);
-        Order(B[i].recent, B[min].recent);
-      end;
-    end;
-  end;
-end;
-
-procedure addHighScore(score : integer);
-VAR newHighScores : TnewHighScoresArray;
-    k : integer;
-begin
-  for k := 0 to PRED(NUM_HighScores) do
-  begin
-    newHighScores[k] := HighScores[k];
-    newHighScores[k].recent := 0;
-  end;
-  newHighScores[NUM_HighScores].score := score;
-  newHighScores[NUM_HighScores].recent := 1;
-
-  Bubble(newHighScores, NUM_HighScores);
-
-  for k := 0 to PRED(NUM_HighScores) do
-  begin
-    HighScores[k] := newHighScores[k];
-  end;
-end;
-
-procedure drawHighScores;
-VAR i, y : integer;
-    a : TString50;
-begin
-  y := 150;
-  drawText(425, 70, 255, 255, 255, 'HIGHSCORES');
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    a := '#' + IntToStr(i + 1) + ' ............ ' + numberfill(HighScores[i].score);
-    if HighScores[i].recent = 1 then
-    begin
-      drawText(425, y, 255, 255, 0, a);
-    end
-    else
-    begin
-      drawText(425, y, 255, 255, 255, a);
-    end;
-    INC(y, 50);
-  end;
-  drawtext(425, 600, 255, 255, 255, 'PRESS FIRE TO PLAY!');
-end;
-
-procedure initHighScore;
-begin
-  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
-  app.delegate.logic := HighSC;
-  app.delegate.draw  := HighSC;
-end;
-
-procedure initHighScoreTable;
-VAR i : integer;
-begin
-  FillChar(HighScores, SizeOf(THighScoreDef), 0);
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    HighScores[i].score := NUM_HighScores - i;
-  end;
 end;
 
 // **************   Background  ***************
@@ -969,6 +884,13 @@ begin
   end;
 end;
 
+{################################################################################}
+procedure addHighscore(score : integer); FORWARD;
+procedure initHighscore; FORWARD;
+{################################################################################}
+
+// ***************   INIT GAME   ***************
+
 procedure logic_Game;
 begin
   doBackGround;
@@ -1069,8 +991,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.delegate.logic := @logic_Game;
+  app.delegate.draw  := @draw_Game;
   bulletTexture      := loadTexture('gfx/playerBullet.png');
   enemyTexture       := loadTexture('gfx/enemy.png');
   alienbulletTexture := loadTexture('gfx/alienBullet.png');
@@ -1085,7 +1007,80 @@ begin
   resetTimer := FPS * 3;
 end;
 
-// *******  HIGHSCORE / TITLE LOGIC  **********
+// ***************  HIGHSCORE  ****************
+
+Procedure Order(VAR p, q : integer);
+VAR temp : integer;
+begin
+  temp := p; p := q; q := temp;
+end;
+
+Procedure Bubble(VAR B : TnewHighScoresArray; n : integer);
+VAR i, j, min : integer;
+begin
+  for i := 0 to PRED(n) do
+  begin
+    min := i;
+    for j := SUCC(i) to n do
+    begin
+      if (B[min].score < B[j].score) then min := j;
+      if B[i].score < B[min].score then
+      begin
+        Order(B[i].score,  B[min].score);
+        Order(B[i].recent, B[min].recent);
+      end;
+    end;
+  end;
+end;
+
+procedure addHighScore(score : integer);
+VAR newHighScores : TnewHighScoresArray;
+    k : integer;
+begin
+  for k := 0 to PRED(NUM_HighScores) do
+  begin
+    newHighScores[k] := HighScores[k];
+    newHighScores[k].recent := 0;
+  end;
+  newHighScores[NUM_HighScores].score := score;
+  newHighScores[NUM_HighScores].recent := 1;
+
+  Bubble(newHighScores, NUM_HighScores);
+
+  for k := 0 to PRED(NUM_HighScores) do
+  begin
+    HighScores[k] := newHighScores[k];
+  end;
+end;
+
+procedure drawHighScores;
+VAR i, y : integer;
+    a : TString50;
+begin
+  y := 150;
+  drawText(425, 70, 255, 255, 255, 'HIGHSCORES');
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    a := '#' + IntToStr(i + 1) + ' ............ ' + numberfill(HighScores[i].score);
+    if HighScores[i].recent = 1 then
+    begin
+      drawText(425, y, 255, 255, 0, a);
+    end
+    else
+    begin
+      drawText(425, y, 255, 255, 255, a);
+    end;
+    INC(y, 50);
+  end;
+  drawtext(425, 600, 255, 255, 255, 'PRESS FIRE TO PLAY!');
+end;
+
+procedure draw_HighSC;
+begin
+  drawBackground;
+  drawStarField;
+  drawHighScores;
+end;
 
 procedure logic_HighSC;
 begin
@@ -1095,14 +1090,23 @@ begin
     begin
       initStage;
     end;
-
 end;
 
-procedure draw_HighSC;
+procedure initHighScore;
 begin
-  drawBackground;
-  drawStarField;
-  drawHighScores;
+  app.delegate.logic := @logic_HighSC;
+  app.delegate.draw  := @draw_HighSC;
+  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
+end;
+
+procedure initHighScoreTable;
+VAR i : integer;
+begin
+  FillChar(HighScores, SizeOf(THighScoreDef), 0);
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    HighScores[i].score := NUM_HighScores - i;
+  end;
 end;
 
 // ***************   INIT SDL   ***************
@@ -1235,7 +1239,7 @@ end;
 
 // *************   DELEGATE LOGIC   ***********
 
-procedure delegate_logic(Wahl : TDelegating);
+{procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   HighSC : begin
@@ -1247,7 +1251,7 @@ begin
            draw_Game;
          end;
   end;
-end;
+end; }
 
 // *****************   MAIN   *****************
 
@@ -1263,7 +1267,8 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    app.delegate.logic;
+    app.delegate.draw;
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

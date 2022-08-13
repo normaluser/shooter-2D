@@ -64,7 +64,7 @@ TYPE                                        { "T" short for "TYPE" }
      TString16   = String[MAX_SCORE_NAME_LENGTH];
      TString50   = String[MAX_STRING_LENGTH];
 
-     TDelegating = (Logo, Highsc, Game);
+     TDelegating = procedure; //(Logo, Highsc, Game);
      TDelegate   = RECORD
                      logic, draw : TDelegating;
                    end;
@@ -121,7 +121,7 @@ TYPE                                        { "T" short for "TYPE" }
      THighScoreArray =     Array[0..PRED(NUM_HighScores)] OF THighScoreDef;
      TnewHighScoresArray = Array[0..NUM_HighScores] OF THighScoreDef;
 
-   TAlignment = (TEXT_LEFT, TEXT_CENTER, TEXT_RIGHT);
+     TAlignment = (TEXT_LEFT, TEXT_CENTER, TEXT_RIGHT);
 
 VAR app                  : TApp;
     stage                : TStage;
@@ -398,157 +398,6 @@ end;
 procedure initFonts;
 begin
   fontTexture := loadTexture('gfx/font.png');
-end;
-
-// ***************  HIGHSCORE  ****************
-
-Procedure Order(VAR p, q : integer);
-VAR temp : integer;
-begin
-  temp := p; p := q; q := temp;
-end;
-
-Procedure Bubble(VAR B : TnewHighScoresArray; n : integer);
-VAR i, j, min : integer;
-begin
-  for i := 0 to PRED(n) do
-  begin
-    min := i;
-    for j := SUCC(i) to n do
-    begin
-      if (B[min].score < B[j].score) then min := j;
-      if B[i].score < B[min].score then
-      begin
-        Order(B[i].score,  B[min].score);
-        Order(B[i].recent, B[min].recent);
-      end;
-    end;
-  end;
-end;
-
-procedure addHighScore(score : integer);
-VAR newHighScores : TnewHighScoresArray;
-    k : integer;
-begin
-  for k := 0 to PRED(NUM_HighScores) do
-  begin
-    newHighScores[k] := HighScores[k];
-    newHighScores[k].recent := 0;
-    if ((newHighScores[k].score = score) AND (newHighScores[k].name = 'ANONYMOUS')) then
-      newHighScores[k].score := 0;   { erase the Anonymous - entry }
-  end;
-  newHighScores[NUM_HighScores].score := score;
-  newHighScores[NUM_HighScores].recent := 1;
-
-  Bubble(newHighScores, NUM_HighScores);
-
-  for k := 0 to PRED(NUM_HighScores) do
-  begin
-    HighScores[k] := newHighScores[k];
-    if (newHighScores[k].recent = 1) then
-    begin
-      HighScores[k].recent := 1;
-      newHighScoreFlag := TRUE;
-    end;
-  end;
-end;
-
-procedure doNameInput;
-VAR i, n, o : integer;
-    c : char;
-begin
-  n := LENGTH(newHighScore.name);
-  for i := 1 to LENGTH(app.inputText) do
-  begin
-    c := UPCASE(app.inputText[i]);
-    if ((n < PRED(MAX_SCORE_NAME_LENGTH)) AND (c IN [' '..'Z'])) then
-      newHighScore.name := newHighScore.name + c;
-  end;
-  if ((n > 0) AND (app.keyboard[SDL_SCANCODE_BACKSPACE] = 1)) then
-  begin
-    o := LENGTH(newHighScore.name);
-    newHighScore.name := LEFTSTR(newHighScore.name, o - 1);
-    app.Keyboard[SDL_SCANCODE_BACKSPACE] := 0;
-  end;
-  if (app.Keyboard[SDL_SCANCODE_RETURN] = 1) then
-  begin
-    if LENGTH(newHighScore.name) = 0 then
-      newHighScore.name := 'ANONYMOUS';
-    for i := 0 to PRED(NUM_HighScores) do
-    begin
-      if (HighScores[i].recent = 1) then
-      begin
-        HighScores[i].name := newHighScore.name;
-        newHighScore.name := '';
-      end;
-    end;
-    newHighScoreFlag := FALSE;
-  end;
-end;
-
-procedure drawNameInput;
-VAR r : TSDL_Rect;
-begin
-  drawText(SCREEN_WIDTH DIV 2,  70, 255, 255, 255, TEXT_CENTER, 'CONGRATULATIONS, YOU''VE GAINED A HIGHSCORE!');
-  drawText(SCREEN_WIDTH DIV 2, 120, 255, 255, 255, TEXT_CENTER, 'ENTER YOUR NAME BELOW:');
-  drawText(SCREEN_WIDTH DIV 2, 250, 128, 255, 128, TEXT_CENTER, newHighScore.name);
-  if (cursorBlink < (FPS DIV  2)) then
-  begin
-    r.x := ((SCREEN_WIDTH DIV 2) + (LENGTH(newHighScore.name) * GLYPH_WIDTH) DIV 2) + 5;
-    r.y := 250;
-    r.w := GLYPH_WIDTH;
-    r.h := GLYPH_HEIGHT;
-    SDL_SetRenderDrawColor(app.Renderer, 0 , 255, 0, 255);
-    SDL_RenderFillRect(app.Renderer, @r);
-  end;
-  drawText(SCREEN_WIDTH DIV 2, 625, 255, 255, 255, TEXT_CENTER, 'PRESS RETURN WHEN FINISHED');
-end;
-
-procedure drawHighScores;
-VAR i, y, r, g, b, o : integer;
-    p : TString16;
-    a, Fmt : TString50;
-begin
-  p := ' ............';
-  y := 150;
-  drawText(SCREEN_WIDTH DIV 2, 70, 255, 255, 255, TEXT_CENTER, 'HIGHSCORES');
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    r := 255;
-    g := 255;
-    b := 255;
-//    o := LENGTH(HighScores[i].name);
-//    a := '#' + IntToStr(i + 1) + ' ' + HighScores[i].name  +
-//         LEFTSTR(p, (MAX_SCORE_NAME_LENGTH - o)) + '..... ' + numberfill(HighScores[i].score);
-    o := MAX_SCORE_NAME_LENGTH - LENGTH(HighScores[i].name) + 5;
-    Fmt := '[%s%.d %s %-*.*s %.3d]';
-    a := Format(fmt, ['#',i + 1, HighScores[i].name, o, o, '....................',HighScores[i].score]);
-    if HighScores[i].recent = 1 then
-      b := 0;
-    drawText(SCREEN_WIDTH DIV 2, y, r, g, b, TEXT_CENTER, a);
-    INC(y, 50);
-  end;
-end;
-
-procedure initHighScore;
-begin
-  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
-  app.delegate.logic := HighSC;
-  app.delegate.draw  := HighSC;
-  timeout := FPS * 5;
-end;
-
-procedure initHighScoreTable;
-VAR i : integer;
-begin
-  FillChar(HighScores, SizeOf(THighScoreDef), 0);
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    HighScores[i].score := NUM_HighScores - i;
-    HighScores[i].name := 'ANONYMOUS';
-  end;
-  newHighScoreFlag := FALSE;
-  cursorBlink := 0;
 end;
 
 // **************   Background  ***************
@@ -1059,6 +908,11 @@ begin
   end;
 end;
 
+//###################################################
+procedure initHighScore; FORWARD;
+procedure addHighScore(score : integer); FORWARD;
+//###################################################
+
 procedure logic_Game;
 begin
   doBackGround;
@@ -1159,8 +1013,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.delegate.logic := @logic_Game;
+  app.delegate.draw  := @draw_Game;
   bulletTexture      := loadTexture('gfx/playerBullet.png');
   enemyTexture       := loadTexture('gfx/enemy.png');
   alienbulletTexture := loadTexture('gfx/alienBullet.png');
@@ -1218,8 +1072,8 @@ end;
 procedure initTitle;
 VAR r : TSDL_Rect;
 begin
-  app.delegate.logic := Logo;
-  app.delegate.draw  := Logo;
+  app.delegate.logic := @logic_Title;
+  app.delegate.draw  := @draw_Title;
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
   SDL2Texture := loadTexture('gfx/sdl2.png');
   shooterTexture := loadTexture('gfx/shooter.png');
@@ -1227,6 +1081,136 @@ begin
   reveal_max := r.h;
   reveal := 0;
   timeout := FPS * 5;
+end;
+
+// ***************  HIGHSCORE  ****************
+
+Procedure Order(VAR p, q : integer);
+VAR temp : integer;
+begin
+  temp := p; p := q; q := temp;
+end;
+
+Procedure Bubble(VAR B : TnewHighScoresArray; n : integer);
+VAR i, j, min : integer;
+begin
+  for i := 0 to PRED(n) do
+  begin
+    min := i;
+    for j := SUCC(i) to n do
+    begin
+      if (B[min].score < B[j].score) then min := j;
+      if B[i].score < B[min].score then
+      begin
+        Order(B[i].score,  B[min].score);
+        Order(B[i].recent, B[min].recent);
+      end;
+    end;
+  end;
+end;
+
+procedure addHighScore(score : integer);
+VAR newHighScores : TnewHighScoresArray;
+    k : integer;
+begin
+  for k := 0 to PRED(NUM_HighScores) do
+  begin
+    newHighScores[k] := HighScores[k];
+    newHighScores[k].recent := 0;
+    if ((newHighScores[k].score = score) AND (newHighScores[k].name = 'ANONYMOUS')) then
+      newHighScores[k].score := 0;   { erase the Anonymous - entry }
+  end;
+  newHighScores[NUM_HighScores].score := score;
+  newHighScores[NUM_HighScores].recent := 1;
+
+  Bubble(newHighScores, NUM_HighScores);
+
+  for k := 0 to PRED(NUM_HighScores) do
+  begin
+    HighScores[k] := newHighScores[k];
+    if (newHighScores[k].recent = 1) then
+    begin
+      HighScores[k].recent := 1;
+      newHighScoreFlag := TRUE;
+    end;
+  end;
+end;
+
+procedure doNameInput;
+VAR i, n, o : integer;
+    c : char;
+begin
+  n := LENGTH(newHighScore.name);
+  for i := 1 to LENGTH(app.inputText) do
+  begin
+    c := UPCASE(app.inputText[i]);
+    if ((n < PRED(MAX_SCORE_NAME_LENGTH)) AND (c IN [' '..'Z'])) then
+      newHighScore.name := newHighScore.name + c;
+  end;
+  if ((n > 0) AND (app.keyboard[SDL_SCANCODE_BACKSPACE] = 1)) then
+  begin
+    o := LENGTH(newHighScore.name);
+    newHighScore.name := LEFTSTR(newHighScore.name, o - 1);
+    app.Keyboard[SDL_SCANCODE_BACKSPACE] := 0;
+  end;
+  if (app.Keyboard[SDL_SCANCODE_RETURN] = 1) then
+  begin
+    if LENGTH(newHighScore.name) = 0 then
+      newHighScore.name := 'ANONYMOUS';
+    for i := 0 to PRED(NUM_HighScores) do
+    begin
+      if (HighScores[i].recent = 1) then
+      begin
+        HighScores[i].name := newHighScore.name;
+        newHighScore.name := '';
+      end;
+    end;
+    newHighScoreFlag := FALSE;
+  end;
+end;
+
+procedure drawNameInput;
+VAR r : TSDL_Rect;
+begin
+  drawText(SCREEN_WIDTH DIV 2,  70, 255, 255, 255, TEXT_CENTER, 'CONGRATULATIONS, YOU''VE GAINED A HIGHSCORE!');
+  drawText(SCREEN_WIDTH DIV 2, 120, 255, 255, 255, TEXT_CENTER, 'ENTER YOUR NAME BELOW:');
+  drawText(SCREEN_WIDTH DIV 2, 250, 128, 255, 128, TEXT_CENTER, newHighScore.name);
+  if (cursorBlink < (FPS DIV  2)) then
+  begin
+    r.x := ((SCREEN_WIDTH DIV 2) + (LENGTH(newHighScore.name) * GLYPH_WIDTH) DIV 2) + 5;
+    r.y := 250;
+    r.w := GLYPH_WIDTH;
+    r.h := GLYPH_HEIGHT;
+    SDL_SetRenderDrawColor(app.Renderer, 0 , 255, 0, 255);
+    SDL_RenderFillRect(app.Renderer, @r);
+  end;
+  drawText(SCREEN_WIDTH DIV 2, 625, 255, 255, 255, TEXT_CENTER, 'PRESS RETURN WHEN FINISHED');
+end;
+
+procedure drawHighScores;
+VAR i, y, r, g, b, o : integer;
+    p : TString16;
+    a, Fmt : TString50;
+begin
+  p := ' ............';
+  y := 150;
+  drawText(SCREEN_WIDTH DIV 2, 70, 255, 255, 255, TEXT_CENTER, 'HIGHSCORES');
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    r := 255;
+    g := 255;
+    b := 255;
+//    o := LENGTH(HighScores[i].name);
+//    a := '#' + IntToStr(i + 1) + ' ' + HighScores[i].name  +
+//         LEFTSTR(p, (MAX_SCORE_NAME_LENGTH - o)) + '..... ' + numberfill(HighScores[i].score);
+    o := MAX_SCORE_NAME_LENGTH - LENGTH(HighScores[i].name) + 5;
+    Fmt := '[%s%.d %s %-*.*s %.3d]';
+    a := Format(fmt, ['#',i + 1, HighScores[i].name, o, o, '....................',HighScores[i].score]);
+    if HighScores[i].recent = 1 then
+      b := 0;
+    drawText(SCREEN_WIDTH DIV 2, y, r, g, b, TEXT_CENTER, a);
+    INC(y, 50);
+  end;
 end;
 
 // *******  HIGHSCORE / TITLE LOGIC  **********
@@ -1262,6 +1246,27 @@ begin
     if ((timeout MOD 40) < 20) then
       drawText(SCREEN_WIDTH DIV 2, 600, 255, 255, 255, TEXT_CENTER, 'PRESS FIRE TO PLAY!');
   end;
+end;
+
+procedure initHighScore;
+begin
+  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
+  app.delegate.logic := @logic_HighSC;
+  app.delegate.draw  := @draw_HighSC;
+  timeout := FPS * 5;
+end;
+
+procedure initHighScoreTable;
+VAR i : integer;
+begin
+  FillChar(HighScores, SizeOf(THighScoreDef), 0);
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    HighScores[i].score := NUM_HighScores - i;
+    HighScores[i].name := 'ANONYMOUS';
+  end;
+  newHighScoreFlag := FALSE;
+  cursorBlink := 0;
 end;
 
 // ***************   INIT SDL   ***************
@@ -1400,7 +1405,7 @@ end;
 
 // *************   DELEGATE LOGIC   ***********
 
-procedure delegate_logic(Wahl : TDelegating);
+{procedure delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   Logo : begin
@@ -1416,7 +1421,7 @@ begin
            draw_Game;
          end;
   end;
-end;
+end; }
 
 // *****************   MAIN   *****************
 
@@ -1432,7 +1437,8 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    app.delegate.logic;
+    app.delegate.draw;
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

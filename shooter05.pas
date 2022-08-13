@@ -36,7 +36,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       MAX_KEYBOARD_KEYS = 350;
 
 TYPE                                        { "T" short for "TYPE" }
-     TDelegating = (Game);
+     TDelegating = procedure;
      TDelegate  = RECORD                    { "T" short for "TYPE" }
                     logic, draw : TDelegating;
                   end;
@@ -44,7 +44,7 @@ TYPE                                        { "T" short for "TYPE" }
                     Window   : PSDL_Window;
                     Renderer : PSDL_Renderer;
                     keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                    delegate : TDelegate;
+                    Delegate : TDelegate;
                   end;
      PEntity    = ^TEntity;                { "P" short for "Pointer" }
      TEntity    = RECORD
@@ -53,17 +53,17 @@ TYPE                                        { "T" short for "TYPE" }
                     Texture : PSDL_Texture;
                     next : PEntity;
                   end;
-     TStage     = RECORD
-                    fighterHead, fighterTail,
-                    bulletHead, bulletTail : PEntity;
-                  end;
+     TStage    = RECORD
+                   fighterHead, fighterTail,
+                   bulletHead, bulletTail : PEntity;
+                 end;
 
 VAR app              : TApp;
     stage            : TStage;
     player,
     bullet           : PEntity;
     CacheBulletTex   : PSDL_Texture;
-    Event            : TSDL_EVENT;
+    Event            : PSDL_EVENT;
     exitLoop         : BOOLEAN;
     gTicks           : UInt32;
     gRemainder       : double;
@@ -81,9 +81,9 @@ end;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage(Message : String);
+procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
   HALT(1);
 end;
 
@@ -98,9 +98,9 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, NIL, @dest);
 end;
 
-function loadTexture(Pfad : String) : PSDL_Texture;
+function loadTexture(Pfad : PChar) : PSDL_Texture;
 begin
-  loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
+  loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
   if loadTexture = NIL then errorMessage(SDL_GetError());
 end;
 
@@ -219,8 +219,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.delegate.logic := @logic_Game;
+  app.delegate.draw  := @draw_Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   initEntity(stage.fighterHead);
@@ -229,6 +229,7 @@ begin
   stage.bulletTail  := stage.bulletHead;
   initPlayer;
   CacheBulletTex    := loadTexture('gfx/playerBullet.png');
+  NEW(Event);
 end;
 
 // ***************   INIT SDL   ***************
@@ -268,6 +269,7 @@ end;
 
 procedure cleanUp;
 begin
+  DISPOSE(Event);
   Loesch_Liste(stage.bulletHead^.next);
   DISPOSE(player);
   DISPOSE(stage.fighterHead);
@@ -290,22 +292,22 @@ end;
 
 procedure doInput;
 begin
-  while SDL_PollEvent(@Event) = 1 do
+  while SDL_PollEvent(Event) = 1 do
   begin
-    CASE Event.Type_ of
+    CASE Event^.Type_ of
 
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event.key.keysym.scancode] := 1;
+                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event^.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event.key.keysym.scancode] := 0;
+                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event^.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }
   end;    { SDL_PollEvent }
@@ -326,22 +328,10 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   DELEGATE LOGIC   ***********
-
-procedure delegate_logic(Wahl : TDelegating);
-begin
-  CASE Wahl of
-  Game : begin
-           logic_Game;
-           draw_Game;
-         end;
-  end;
-end;
-
 // *****************   MAIN   *****************
 
 begin
-  CLRSCR;
+  clrscr;
   InitSDL;
   AddExitProc(@AtExit);
   InitStage;
@@ -353,7 +343,8 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    app.delegate.logic;
+    app.delegate.draw;
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

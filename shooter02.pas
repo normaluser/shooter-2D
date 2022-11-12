@@ -22,6 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Drawing the player
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter02.pas
 ***************************************************************************}
 
 PROGRAM Shooter2;

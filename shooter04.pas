@@ -22,6 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Firing with the "LEFT Strg / Ctrl" key
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter04.pas
 ***************************************************************************}
 
 PROGRAM Shooter4;

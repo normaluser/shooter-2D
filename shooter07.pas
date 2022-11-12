@@ -22,6 +22,8 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Shooting enemies
+*** Procedural Parameters for Delegate Draw/Logic
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter07.pas
 ***************************************************************************}
 
 PROGRAM Shooter7;
@@ -67,6 +69,7 @@ VAR app                  : TApp;
     player,
     enemy,
     bullet               : PEntity;
+    CacheplayerTex,
     CacheEnemyTex,
     CacheBulletTex       : PSDL_Texture;
     Event                : TSDL_EVENT;
@@ -79,7 +82,7 @@ VAR app                  : TApp;
 
 procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL; e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -226,6 +229,7 @@ end;
 procedure doFighters;
 VAR e, prev : PEntity;
 begin
+  prev := stage.fighterHead;
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
@@ -287,7 +291,7 @@ begin
   stage.fighterTail := player;
   player^.x := 100;
   player^.y := 100;
-  player^.Texture := loadTexture('gfx/player.png');
+  player^.Texture := CacheplayerTex;
   SDL_QueryTexture(player^.Texture, NIL, NIL, @dest.w, @dest.h);
   player^.w := dest.w;
   player^.h := dest.h;
@@ -310,11 +314,12 @@ begin
   NEW(stage.bulletHead);
   initEntity(stage.fighterHead);
   initEntity(stage.bulletHead);
+  CacheBulletTex    := loadTexture('gfx/playerBullet.png');
+  CacheEnemyTex     := loadTexture('gfx/enemy.png');
+  CacheplayerTex    := loadTexture('gfx/player.png');
   stage.fighterTail := stage.fighterHead;
   stage.bulletTail  := stage.bulletHead;
   initPlayer;
-  CacheBulletTex    := loadTexture('gfx/playerBullet.png');
-  CacheEnemyTex     := loadTexture('gfx/enemy.png');
   enemyspawnTimer   := 0;
 end;
 
@@ -345,11 +350,11 @@ end;
 procedure Loesch_Liste(a : PEntity);
 VAR t : PEntity;
 begin
-  t := a;
-  while (t <> NIL) do
-  begin a := t;
-    DISPOSE(t);
+  while (a <> NIL) do
+  begin
     t := a^.next;
+    DISPOSE(a);
+    a := t;
   end;
 end;
 
@@ -365,7 +370,7 @@ end;
 procedure AtExit;
 begin
   if ExitCode <> 0 then cleanUp;
-  SDL_DestroyTexture (player^.Texture);
+  SDL_DestroyTexture (CacheplayerTex);
   SDL_DestroyTexture (CacheBulletTex);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);

@@ -22,6 +22,8 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Bitmap fonts and scoring
+*** Procedural Parameters for Delegate Draw/Logic
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter11.pas
 ***************************************************************************}
 
 PROGRAM Shooter11;
@@ -127,7 +129,7 @@ VAR app                  : TApp;
 
 procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;  e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -754,44 +756,40 @@ begin
 end;
 
 procedure resetStage;
-VAR e  : PEntity;
-    ex : PExplosion;
-    d  : PDebris;
+VAR e,t  : PEntity;
+    ex,u : PExplosion;
+    d,v  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.fighterHead^.next;
-    stage.fighterHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   e := stage.bulletHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.bulletHead^.next;
-    stage.bulletHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   ex := stage.explosionHead^.next;
   while (ex <> NIL) do
   begin
-    ex := stage.explosionHead^.next;
-    stage.explosionHead^.next := ex^.next;
+    u := ex^.next;
     DISPOSE(ex);
-    ex := ex^.next;
+    ex := u;
   end;
 
   d := stage.debrisHead^.next;
   while (d <> NIL) do
   begin
-    d := stage.debrisHead^.next;
-    stage.debrisHead^.next := d^.next;
+    v := d^.next;
     DISPOSE(d);
-    d := d^.next;
+    d := v;
   end;
 
   stage.fighterTail   := stage.fighterHead;

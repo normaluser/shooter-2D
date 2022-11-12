@@ -22,6 +22,9 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Enemies shoot back!
+*** Procedural Parameters for Delegate Draw/Logic
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter08.pas
+*** e^.side initialisiert!!
 ***************************************************************************}
 
 PROGRAM Shooter8;
@@ -83,7 +86,7 @@ VAR app                  : TApp;
 
 procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL; e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -379,24 +382,22 @@ begin
 end;
 
 procedure resetStage;
-VAR e : PEntity;
+VAR e,t : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.fighterHead^.next;
-    stage.fighterHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   e := stage.bulletHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.bulletHead^.next;
-    stage.bulletHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   stage.fighterTail := stage.fighterHead;

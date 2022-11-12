@@ -22,6 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Opening a SDL2 - Window
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter01.pas
 ***************************************************************************}
 
 PROGRAM Shooter1;

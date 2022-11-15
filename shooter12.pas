@@ -22,6 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Score pods
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter12.pas
 ***************************************************************************}
 
 PROGRAM Shooter12;
@@ -132,7 +133,7 @@ VAR app                  : TApp;
 
 procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;  e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -154,15 +155,15 @@ function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : BOOLEAN;
 VAR a_Rect, b_Rect : TSDL_Rect;
 begin
   collision := FALSE;
-  a_Rect.x := ROUND(x1); a_Rect.y := ROUND(y1); a_Rect.w := ROUND(w1); a_Rect.h := ROUND(h1);
-  b_Rect.x := ROUND(x2); b_Rect.y := ROUND(y2); b_Rect.w := ROUND(w2); b_Rect.h := ROUND(h2);
+  a_Rect.x := TRUNC(x1); a_Rect.y := TRUNC(y1); a_Rect.w := TRUNC(w1); a_Rect.h := TRUNC(h1);
+  b_Rect.x := TRUNC(x2); b_Rect.y := TRUNC(y2); b_Rect.w := TRUNC(w2); b_Rect.h := TRUNC(h2);
   if (SDL_HasIntersection(@a_Rect, @b_Rect) = SDL_TRUE) then collision := TRUE;
 end;
 
-procedure calcSlope(x1, y1, x2, y2 : double; VAR dx, dy : double);
+procedure calcSlope(x1, y1, x2, y2 : integer; VAR dx, dy : double);
 VAR steps : integer;
 begin
-  steps := MAX(ABS(TRUNC(x1-x2)), ABS(TRUNC(y1-y2)));
+  steps := MAX(ABS(x1-x2), ABS(y1-y2));
   if steps = 0 then
   begin
     dx := 0.0;
@@ -235,20 +236,20 @@ end;
 
 // *****************   DRAW   *****************
 
-procedure blit(Texture : PSDL_Texture; x, y : double);
+procedure blit(Texture : PSDL_Texture; x, y : integer);
 VAR dest : TSDL_Rect;
 begin
-  dest.x := TRUNC(x);
-  dest.y := TRUNC(y);
+  dest.x := x;
+  dest.y := y;
   SDL_QueryTexture(Texture, NIL, NIL, @dest.w, @dest.h);
   SDL_RenderCopy(app.Renderer, Texture, NIL, @dest);
 end;
 
-procedure blitRect(Texture : PSDL_Texture; src : PSDL_Rect; x, y : double);
+procedure blitRect(Texture : PSDL_Texture; src : PSDL_Rect; x, y : integer);
 VAR dest : TSDL_Rect;
 begin
-  dest.x := TRUNC(x);
-  dest.y := TRUNC(y);
+  dest.x := x;
+  dest.y := y;
   dest.w := src^.w;
   dest.h := src^.h;
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
@@ -386,7 +387,7 @@ begin
   begin
     SDL_SetTextureColorMod(explosionTexture, e^.r, e^.g, e^.b);
     SDL_SetTextureAlphaMod(explosionTexture, e^.a);
-    blit(explosionTexture, e^.x, e^.y);
+    blit(explosionTexture, TRUNC(e^.x), TRUNC(e^.y));
     e := e^.next;
   end;
   SDL_SetRenderDrawBlendMode(app.Renderer, SDL_BLENDMODE_NONE);
@@ -398,7 +399,7 @@ begin
   d := stage.debrisHead^.next;
   while (d <> NIL) do
   begin
-    blitRect(d^.Texture, @d^.rect, d^.x, d^.y);
+    blitRect(d^.Texture, @d^.rect, TRUNC(d^.x), TRUNC(d^.y));
     d := d^.next;
   end;
 end;
@@ -409,7 +410,7 @@ begin
   b := stage.bulletHead^.next;
   while (b <> NIL) do
   begin
-    blit(b^.Texture, b^.x, b^.y);
+    blit(b^.Texture, TRUNC(b^.x), TRUNC(b^.y));
     b := b^.next;
   end;
 end;
@@ -420,7 +421,7 @@ begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    blit(e^.Texture, e^.x, e^.y);
+    blit(e^.Texture, TRUNC(e^.x), TRUNC(e^.y));
     e := e^.next;
   end;
 end;
@@ -431,7 +432,7 @@ begin
   p := stage.pointsHead^.next;
   while (p <> NIL) do
   begin
-    blit(p^.Texture, p^.x, p^.y);
+    blit(p^.Texture, TRUNC(p^.x), TRUNC(p^.y));
     p := p^.next;
   end;
 end;
@@ -744,7 +745,7 @@ begin
   bullet^.h := dest.h;
   bullet^.x := bullet^.x + (e^.w DIV 2) - (bullet^.w DIV 2);
   bullet^.y := bullet^.y + (e^.h DIV 2) - (bullet^.h DIV 2);
-  calcSlope(player^.x + (player^.w DIV 2), player^.y + (player^.h DIV 2), e^.x, e^.y, bullet^.dx, bullet^.dy);
+  calcSlope(TRUNC(player^.x + (player^.w DIV 2)), TRUNC(player^.y + (player^.h DIV 2)), TRUNC(e^.x), TRUNC(e^.y), bullet^.dx, bullet^.dy);
   bullet^.dx := bullet^.dx * ALIEN_BULLET_SPEED;
   bullet^.dy := bullet^.dy * ALIEN_BULLET_SPEED;
   bullet^.side := SIDE_ALIEN;
@@ -826,55 +827,55 @@ begin
 end;
 
 procedure resetStage;
-VAR e  : PEntity;
-    ex : PExplosion;
-    d  : PDebris;
+VAR e, t  : PEntity;
+    ex, u : PExplosion;
+    d, v  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.fighterHead^.next;
-    stage.fighterHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   e := stage.bulletHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.bulletHead^.next;
-    stage.bulletHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   ex := stage.explosionHead^.next;
   while (ex <> NIL) do
   begin
-    ex := stage.explosionHead^.next;
-    stage.explosionHead^.next := ex^.next;
+    u := ex^.next;
     DISPOSE(ex);
-    ex := ex^.next;
+    ex := u;
   end;
 
   d := stage.debrisHead^.next;
   while (d <> NIL) do
   begin
-    d := stage.debrisHead^.next;
-    stage.debrisHead^.next := d^.next;
+    v := d^.next;
     DISPOSE(d);
-    d := d^.next;
+    d := v;
   end;
 
   e := stage.pointsHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.pointsHead^.next;
-    stage.pointsHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
+  initEntity(stage.fighterHead);
+  initEntity(stage.bulletHead);
+  initExplosion(stage.explosionHead);
+  initDebris(stage.debrisHead);
+  initEntity(stage.pointsHead);
   stage.fighterTail   := stage.fighterHead;
   stage.bulletTail    := stage.bulletHead;
   stage.explosionTail := stage.explosionHead;

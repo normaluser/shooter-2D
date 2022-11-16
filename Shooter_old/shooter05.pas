@@ -22,7 +22,6 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Refactoring: pointers for linked lists
-*** Procedural Parameters for Delegate Draw/Logic
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter05.pas
 ***************************************************************************}
 

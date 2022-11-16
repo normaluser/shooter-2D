@@ -22,6 +22,8 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Highscore table part 1
+*** Procedural Parameters for Delegate Draw/Logic
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter13.pas
 ***************************************************************************}
 
 PROGRAM Shooter13;
@@ -146,7 +148,7 @@ VAR app                  : TApp;
 
 procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;  e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -539,8 +541,8 @@ procedure addDebris(e : PEntity);
 VAR d : PDebris;
     x, y, w, h : integer;
 begin
-  w := TRUNC(e^.w / 2);
-  h := TRUNC(e^.h / 2);
+  w := e^.w DIV 2;
+  h := e^.h DIV 2;
   x := 0; y := 0;
   while y <= h do
   begin
@@ -550,8 +552,8 @@ begin
       initDebris(d);
       stage.debrisTail^.next := d;
       stage.debrisTail := d;
-      d^.x := e^.x + (e^.w / 2);
-      d^.y := e^.y + (e^.h / 2);
+      d^.x := e^.x + (e^.w DIV 2);
+      d^.y := e^.y + (e^.h DIV 2);
       d^.dx := (RANDOM(RAND_MAX) MOD 5) - (RANDOM(RAND_MAX) MOD 5);
       d^.dy := -1 * (5 + (RANDOM(RAND_MAX) MOD 12));
       d^.life := FPS * 2;
@@ -933,55 +935,55 @@ begin
 end;
 
 procedure resetStage;
-VAR e  : PEntity;
-    ex : PExplosion;
-    d  : PDebris;
+VAR e, t  : PEntity;
+    ex, u : PExplosion;
+    d, v  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.fighterHead^.next;
-    stage.fighterHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   e := stage.bulletHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.bulletHead^.next;
-    stage.bulletHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   ex := stage.explosionHead^.next;
   while (ex <> NIL) do
   begin
-    ex := stage.explosionHead^.next;
-    stage.explosionHead^.next := ex^.next;
+    u := ex^.next;
     DISPOSE(ex);
-    ex := ex^.next;
+    ex := u;
   end;
 
   d := stage.debrisHead^.next;
   while (d <> NIL) do
   begin
-    d := stage.debrisHead^.next;
-    stage.debrisHead^.next := d^.next;
+    v := d^.next;
     DISPOSE(d);
-    d := d^.next;
+    d := v;
   end;
 
   e := stage.pointsHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.pointsHead^.next;
-    stage.pointsHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
+  initEntity(stage.fighterHead);
+  initEntity(stage.bulletHead);
+  initExplosion(stage.explosionHead);
+  initDebris(stage.debrisHead);
+  initEntity(stage.pointsHead);
   stage.fighterTail   := stage.fighterHead;
   stage.bulletTail    := stage.bulletHead;
   stage.explosionTail := stage.explosionHead;
@@ -1154,15 +1156,14 @@ begin
 end;
 
 procedure destroyTexture;
-VAR tex : PTextur;
+VAR e, tex : PTextur;
 begin
   tex := app.textureHead^.next;
   while (tex <> NIL) do
   begin
-    tex := app.textureHead^.next;
-    app.textureHead^.next := tex^.next;
+    e := tex^.next;
     DISPOSE(tex);
-    tex := tex^.next;
+    tex := e;
   end;
 end;
 

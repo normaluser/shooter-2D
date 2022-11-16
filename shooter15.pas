@@ -22,6 +22,8 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Title screen and finishing touches
+*** Procedural Parameters for Delegate Draw/Logic
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter15.pas
 ***************************************************************************}
 
 PROGRAM Shooter15;
@@ -160,7 +162,7 @@ VAR app                  : TApp;
 
 procedure initEntity(VAR e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;  e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -955,55 +957,55 @@ begin
 end;
 
 procedure resetStage;
-VAR e  : PEntity;
-    ex : PExplosion;
-    d  : PDebris;
+VAR e, t  : PEntity;
+    ex, u : PExplosion;
+    d, v  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.fighterHead^.next;
-    stage.fighterHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   e := stage.bulletHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.bulletHead^.next;
-    stage.bulletHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   ex := stage.explosionHead^.next;
   while (ex <> NIL) do
   begin
-    ex := stage.explosionHead^.next;
-    stage.explosionHead^.next := ex^.next;
+    u := ex^.next;
     DISPOSE(ex);
-    ex := ex^.next;
+    ex := u;
   end;
 
   d := stage.debrisHead^.next;
   while (d <> NIL) do
   begin
-    d := stage.debrisHead^.next;
-    stage.debrisHead^.next := d^.next;
+    v := d^.next;
     DISPOSE(d);
-    d := d^.next;
+    d := v;
   end;
 
   e := stage.pointsHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.pointsHead^.next;
-    stage.pointsHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
+  initEntity(stage.fighterHead);
+  initEntity(stage.bulletHead);
+  initExplosion(stage.explosionHead);
+  initDebris(stage.debrisHead);
+  initEntity(stage.pointsHead);
   stage.fighterTail   := stage.fighterHead;
   stage.bulletTail    := stage.bulletHead;
   stage.explosionTail := stage.explosionHead;
@@ -1316,15 +1318,14 @@ begin
 end;
 
 procedure destroyTexture;
-VAR tex : PTextur;
+VAR e, tex : PTextur;
 begin
   tex := app.textureHead^.next;
   while (tex <> NIL) do
   begin
-    tex := app.textureHead^.next;
-    app.textureHead^.next := tex^.next;
+    e := tex^.next;
     DISPOSE(tex);
-    tex := tex^.next;
+    tex := e;
   end;
 end;
 
@@ -1332,13 +1333,13 @@ procedure cleanUp;
 VAR i : byte;
 begin
   resetStage;
-  if stage.fighterHead   <> NIL then begin DISPOSE(stage.fighterHead); end;
-  if stage.bulletHead    <> NIL then begin DISPOSE(stage.bulletHead); end;
-  if stage.explosionHead <> NIL then begin DISPOSE(stage.explosionHead); end;
-  if stage.debrisHead    <> NIL then begin DISPOSE(stage.debrisHead); end;
-  if stage.pointsHead    <> NIL then begin DISPOSE(stage.pointsHead); end;
+  if stage.fighterHead   <> NIL then DISPOSE(stage.fighterHead);
+  if stage.bulletHead    <> NIL then DISPOSE(stage.bulletHead);
+  if stage.explosionHead <> NIL then DISPOSE(stage.explosionHead);
+  if stage.debrisHead    <> NIL then DISPOSE(stage.debrisHead);
+  if stage.pointsHead    <> NIL then DISPOSE(stage.pointsHead);
   destroyTexture;
-  if app.textureHead     <> NIL then begin DISPOSE(app.textureHead); end;
+  if app.textureHead     <> NIL then DISPOSE(app.textureHead);
 
   for i := 5 downto 1 do
     Mix_FreeChunk(sounds[i]);

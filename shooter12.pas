@@ -22,6 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Score pods
+*** Procedural Parameters for Delegate Draw/Logic
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter12.pas
 ***************************************************************************}
 
@@ -155,26 +156,24 @@ function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : BOOLEAN;
 VAR a_Rect, b_Rect : TSDL_Rect;
 begin
   collision := FALSE;
-  a_Rect.x := TRUNC(x1); a_Rect.y := TRUNC(y1); a_Rect.w := TRUNC(w1); a_Rect.h := TRUNC(h1);
-  b_Rect.x := TRUNC(x2); b_Rect.y := TRUNC(y2); b_Rect.w := TRUNC(w2); b_Rect.h := TRUNC(h2);
+  a_Rect.x := ROUND(x1); a_Rect.y := ROUND(y1); a_Rect.w := ROUND(w1); a_Rect.h := ROUND(h1);
+  b_Rect.x := ROUND(x2); b_Rect.y := ROUND(y2); b_Rect.w := ROUND(w2); b_Rect.h := ROUND(h2);
   if (SDL_HasIntersection(@a_Rect, @b_Rect) = SDL_TRUE) then collision := TRUE;
 end;
 
-procedure calcSlope(x1, y1, x2, y2 : integer; VAR dx, dy : double);
-VAR steps : integer;
+procedure calcSlope(x1, y1, x2, y2 : double; VAR dx, dy : double);
+VAR steps : double;
 begin
-  steps := MAX(ABS(x1-x2), ABS(y1-y2));
-  if steps = 0 then
+  steps := MAX(ABS((x1-x2)), ABS((y1-y2)));
+  if steps <> 0.0 then
   begin
-    dx := 0.0;
-    dy := 0.0;
+    dx := (x1 - x2) / steps;
+    dy := (y1 - y2) / steps;
   end
   else
   begin
-    dx := x1 - x2;
-    dx := dx / steps;
-    dy := y1 - y2;
-    dy := dy / steps;
+    dx := 0.0;
+    dy := 0.0;
   end;
 end;
 
@@ -236,20 +235,20 @@ end;
 
 // *****************   DRAW   *****************
 
-procedure blit(Texture : PSDL_Texture; x, y : integer);
+procedure blit(Texture : PSDL_Texture; x, y : double);
 VAR dest : TSDL_Rect;
 begin
-  dest.x := x;
-  dest.y := y;
+  dest.x := TRUNC(x);
+  dest.y := TRUNC(y);
   SDL_QueryTexture(Texture, NIL, NIL, @dest.w, @dest.h);
   SDL_RenderCopy(app.Renderer, Texture, NIL, @dest);
 end;
 
-procedure blitRect(Texture : PSDL_Texture; src : PSDL_Rect; x, y : integer);
+procedure blitRect(Texture : PSDL_Texture; src : PSDL_Rect; x, y : double);
 VAR dest : TSDL_Rect;
 begin
-  dest.x := x;
-  dest.y := y;
+  dest.x := TRUNC(x);
+  dest.y := TRUNC(y);
   dest.w := src^.w;
   dest.h := src^.h;
   SDL_RenderCopy(app.Renderer, Texture, src, @dest);
@@ -387,7 +386,7 @@ begin
   begin
     SDL_SetTextureColorMod(explosionTexture, e^.r, e^.g, e^.b);
     SDL_SetTextureAlphaMod(explosionTexture, e^.a);
-    blit(explosionTexture, TRUNC(e^.x), TRUNC(e^.y));
+    blit(explosionTexture, e^.x, e^.y);
     e := e^.next;
   end;
   SDL_SetRenderDrawBlendMode(app.Renderer, SDL_BLENDMODE_NONE);
@@ -399,7 +398,7 @@ begin
   d := stage.debrisHead^.next;
   while (d <> NIL) do
   begin
-    blitRect(d^.Texture, @d^.rect, TRUNC(d^.x), TRUNC(d^.y));
+    blitRect(d^.Texture, @d^.rect, d^.x, d^.y);
     d := d^.next;
   end;
 end;
@@ -410,7 +409,7 @@ begin
   b := stage.bulletHead^.next;
   while (b <> NIL) do
   begin
-    blit(b^.Texture, TRUNC(b^.x), TRUNC(b^.y));
+    blit(b^.Texture, b^.x, b^.y);
     b := b^.next;
   end;
 end;
@@ -421,7 +420,7 @@ begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    blit(e^.Texture, TRUNC(e^.x), TRUNC(e^.y));
+    blit(e^.Texture, e^.x, e^.y);
     e := e^.next;
   end;
 end;
@@ -432,7 +431,7 @@ begin
   p := stage.pointsHead^.next;
   while (p <> NIL) do
   begin
-    blit(p^.Texture, TRUNC(p^.x), TRUNC(p^.y));
+    blit(p^.Texture, p^.x, p^.y);
     p := p^.next;
   end;
 end;
@@ -745,7 +744,7 @@ begin
   bullet^.h := dest.h;
   bullet^.x := bullet^.x + (e^.w DIV 2) - (bullet^.w DIV 2);
   bullet^.y := bullet^.y + (e^.h DIV 2) - (bullet^.h DIV 2);
-  calcSlope(TRUNC(player^.x + (player^.w DIV 2)), TRUNC(player^.y + (player^.h DIV 2)), TRUNC(e^.x), TRUNC(e^.y), bullet^.dx, bullet^.dy);
+  calcSlope(player^.x + (player^.w DIV 2), player^.y + (player^.h DIV 2), e^.x, e^.y, bullet^.dx, bullet^.dy);
   bullet^.dx := bullet^.dx * ALIEN_BULLET_SPEED;
   bullet^.dy := bullet^.dy * ALIEN_BULLET_SPEED;
   bullet^.side := SIDE_ALIEN;
@@ -762,10 +761,10 @@ begin
     begin
       DEC(e^.reload);
       if (e^.reload <= 0) then
-        begin
-          fireAlienbullet(e);
-          playSound(SND_ALIEN_FIRE, CH_ALIEN_FIRE);
-        end;
+      begin
+        fireAlienbullet(e);
+        playSound(SND_ALIEN_FIRE, CH_ALIEN_FIRE);
+      end;
     end;
     e := e^.next;
   end;

@@ -162,8 +162,8 @@ begin
   steps := MAX(ABS(x1-x2), ABS(y1-y2));
   if steps = 0 then
   begin
-    dx := 0;
-    dy := 0;
+    dx := 0.0;
+    dy := 0.0;
   end
   else
   begin
@@ -529,6 +529,7 @@ begin
     enemyspawnTimer := 30 + (RANDOM(RAND_MAX) MOD FPS);
   end;
 end;
+
 procedure doDebris;
 VAR d, prev : PDebris;
 begin
@@ -756,9 +757,9 @@ begin
 end;
 
 procedure resetStage;
-VAR e,t  : PEntity;
-    ex,u : PExplosion;
-    d,v  : PDebris;
+VAR e, t  : PEntity;
+    ex, u : PExplosion;
+    d, v  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -966,7 +967,6 @@ begin
   highScore := 0;
   music := NIL;
 
-
   while exitLoop = FALSE do
   begin
     prepareScene;
@@ -979,6 +979,5 @@ begin
 
   resetStage;
   cleanUp;
-
   AtExit;
 end.

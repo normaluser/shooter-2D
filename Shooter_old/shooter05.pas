@@ -22,6 +22,8 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Refactoring: pointers for linked lists
+*** Procedural Parameters for Delegate Draw/Logic
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter05.pas
 ***************************************************************************}
 
 PROGRAM Shooter5;
@@ -44,7 +46,7 @@ TYPE                                        { "T" short for "TYPE" }
                     Window   : PSDL_Window;
                     Renderer : PSDL_Renderer;
                     keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                    delegate : TDelegate;
+                    Delegate : TDelegate;
                   end;
      PEntity    = ^TEntity;                { "P" short for "Pointer" }
      TEntity    = RECORD
@@ -53,17 +55,18 @@ TYPE                                        { "T" short for "TYPE" }
                     Texture : PSDL_Texture;
                     next : PEntity;
                   end;
-     TStage     = RECORD
-                    fighterHead, fighterTail,
-                    bulletHead, bulletTail : PEntity;
-                  end;
+     TStage    = RECORD
+                   fighterHead, fighterTail,
+                   bulletHead, bulletTail : PEntity;
+                 end;
 
 VAR app              : TApp;
     stage            : TStage;
     player,
     bullet           : PEntity;
+    CachePlayerTex,
     CacheBulletTex   : PSDL_Texture;
-    Event            : TSDL_EVENT;
+    Event            : PSDL_EVENT;
     exitLoop         : BOOLEAN;
     gTicks           : UInt32;
     gRemainder       : double;
@@ -81,9 +84,9 @@ end;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage(Message : String);
+procedure errorMessage(Message : PChar);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
   HALT(1);
 end;
 
@@ -98,9 +101,9 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, NIL, @dest);
 end;
 
-function loadTexture(Pfad : String) : PSDL_Texture;
+function loadTexture(Pfad : PChar) : PSDL_Texture;
 begin
-  loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
+  loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
   if loadTexture = NIL then errorMessage(SDL_GetError());
 end;
 
@@ -205,7 +208,7 @@ begin
   player^.x := 100;
   player^.y := 100;
   player^.reload := 8;
-  player^.Texture := loadTexture('gfx/player.png');
+  player^.Texture := CachePlayerTex;
   SDL_QueryTexture(player^.Texture, NIL, NIL, @dest.w, @dest.h);
   player^.w := dest.w;
   player^.h := dest.h;
@@ -219,6 +222,7 @@ end;
 
 procedure initStage;
 begin
+  NEW(event);
   app.delegate.logic := Game;
   app.delegate.draw  := Game;
   NEW(stage.fighterHead);
@@ -227,8 +231,9 @@ begin
   initEntity(stage.bulletHead);
   stage.fighterTail := stage.fighterHead;
   stage.bulletTail  := stage.bulletHead;
-  initPlayer;
+  CachePlayerTex    := loadTexture('gfx/player.png');
   CacheBulletTex    := loadTexture('gfx/playerBullet.png');
+  initPlayer;
 end;
 
 // ***************   INIT SDL   ***************
@@ -258,28 +263,29 @@ end;
 procedure Loesch_Liste(a : PEntity);
 VAR t : PEntity;
 begin
-  t := a;
-  while (t <> NIL) do
-  begin a := t;
-    DISPOSE(t);
+  while (a <> NIL) do
+  begin
     t := a^.next;
+    DISPOSE(a);
+    a := t;
   end;
 end;
 
 procedure cleanUp;
 begin
+  Loesch_Liste(stage.fighterHead^.next);
   Loesch_Liste(stage.bulletHead^.next);
-  DISPOSE(player);
   DISPOSE(stage.fighterHead);
   DISPOSE(stage.bulletHead);
+  DISPOSE(event);
   if ExitCode <> 0 then WriteLn('CleanUp complete!');
 end;
 
 procedure AtExit;
 begin
   if ExitCode <> 0 then cleanUp;
-  SDL_DestroyTexture (player^.Texture);
   SDL_DestroyTexture (CacheBulletTex);
+  SDL_DestroyTexture (CacheplayerTex);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
@@ -290,22 +296,22 @@ end;
 
 procedure doInput;
 begin
-  while SDL_PollEvent(@Event) = 1 do
+  while SDL_PollEvent(Event) = 1 do
   begin
-    CASE Event.Type_ of
+    CASE Event^.Type_ of
 
       SDL_QUITEV:          exitLoop := TRUE;        { close Window }
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event.key.keysym.scancode] := 1;
+                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event^.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
-                       app.keyboard[Event.key.keysym.scancode] := 0;
+                     if ((Event^.key._repeat = 0) AND (Event^.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                       app.keyboard[Event^.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }
   end;    { SDL_PollEvent }
@@ -341,7 +347,7 @@ end;
 // *****************   MAIN   *****************
 
 begin
-  CLRSCR;
+  clrscr;
   InitSDL;
   AddExitProc(@AtExit);
   InitStage;

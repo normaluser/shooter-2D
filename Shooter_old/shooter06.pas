@@ -22,6 +22,8 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Enemies on the screen
+*** Procedural Parameters for Delegate Draw/Logic
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter06.pas
 ***************************************************************************}
 
 PROGRAM Shooter6;
@@ -38,7 +40,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       FPS = 60;
 
 TYPE
-     TDelegating = procedure;               { "T" short for "TYPE" }
+     TDelegating = (Game);                  { "T" short for "TYPE" }
      TDelegate  = RECORD                    { "T" short for "TYPE" }
                     logic, draw : TDelegating;
                   end;
@@ -65,6 +67,7 @@ VAR app                  : TApp;
     player,
     enemy,
     bullet               : PEntity;
+    CachePlayerTex,
     CacheEnemyTex,
     CacheBulletTex       : PSDL_Texture;
     Event                : TSDL_EVENT;
@@ -253,7 +256,7 @@ begin
   player^.x := 100;
   player^.y := 100;
   player^.reload := 8;
-  player^.Texture := loadTexture('gfx/player.png');
+  player^.Texture := CachePlayerTex;
   SDL_QueryTexture(player^.Texture, NIL, NIL, @dest.w, @dest.h);
   player^.w := dest.w;
   player^.h := dest.h;
@@ -269,18 +272,19 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := @logic_Game;
-  app.delegate.draw  := @draw_Game;
+  app.delegate.logic := Game;
+  app.delegate.draw  := Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   initEntity(stage.fighterHead);
   initEntity(stage.bulletHead);
   stage.fighterTail := stage.fighterHead;
   stage.bulletTail  := stage.bulletHead;
-  initPlayer;
+  CachePlayerTex    := loadTexture('gfx/player.png');
   CacheBulletTex    := loadTexture('gfx/playerBullet.png');
   CacheEnemyTex     := loadTexture('gfx/enemy.png');
   enemyspawnTimer   := 0;
+  initPlayer;
 end;
 
 // ***************   INIT SDL   ***************
@@ -310,11 +314,11 @@ end;
 procedure Loesch_Liste(a : PEntity);
 VAR t : PEntity;
 begin
-  t := a;
-  while (t <> NIL) do
-  begin a := t;
-    DISPOSE(t);
+  while (a <> NIL) do
+  begin
     t := a^.next;
+    DISPOSE(a);
+    a := t;
   end;
 end;
 
@@ -330,7 +334,7 @@ end;
 procedure AtExit;
 begin
   if ExitCode <> 0 then cleanUp;
-  SDL_DestroyTexture (player^.Texture);
+  SDL_DestroyTexture (CacheplayerTex);
   SDL_DestroyTexture (CacheEnemyTex);
   SDL_DestroyTexture (CacheBulletTex);
   SDL_DestroyRenderer(app.Renderer);
@@ -379,6 +383,18 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
+// *************   DELEGATE LOGIC   ***********
+
+procedure delegate_logic(Wahl : TDelegating);
+begin
+  CASE Wahl of
+  Game : begin
+           logic_Game;
+           draw_Game;
+         end;
+  end;
+end;
+
 // *****************   MAIN   *****************
 
 begin
@@ -395,8 +411,7 @@ begin
   begin
     prepareScene;
     doInput;
-    app.delegate.logic;
-    app.delegate.draw;
+    delegate_logic(app.delegate.logic);
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

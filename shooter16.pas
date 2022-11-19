@@ -21,12 +21,27 @@ The original source and a lot of explanations can be found at:
 https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
-*** Title screen and finishing touches
-*** Procedural Parameters for Delegate Draw/Logic
-*** without momory holes; testet with: fpc -Criot -gl -gh shooter15.pas
+
+-drawHighScore repariert
+-C Opertoren += -= *= abgeschaltet
+-DrawHud wieder zurueckprogrammiert; MAX bzw NEW Highscore
+-HighScore wird auf Platte geschrieben / gelesen
+-loescht den Anonymous - Eintrag: score wird Null!
+-SDL-Quits erweitert
+-SDL VSync Flag im INIT Teil erweitert / hinzugefuegt
+-Logo scrollt jetzt immer statt nur einmal
+-enemy^.dx (-1) * dx eingefuegt
+-addpointspod geschwindigkeit um 0.1 verringert
+-loadsound errormeldungen korrigiert
+-ErrorMessage erweitert um Sound-Fehlermeldungen
+-Numberfill optimiert mit Format-Befehl Freepascal
+-Logo Draw optimiert
+-Sound & Musiklautstaerke mit Variablen gesteuert
+-Procedural Parameters for Delegate Draw/Logic
+-without momory holes; testet with: fpc -Criot -gl -gh shooter16.pas
 ***************************************************************************}
 
-PROGRAM Shooter15;
+PROGRAM Shooter16;
 {$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
@@ -36,7 +51,6 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       PLAYER_SPEED  = 4.0;
       PLAYER_BULLET_SPEED = 20.0;
       ALIEN_BULLET_SPEED = 8.0;
-      POINTSPOD_TIME = 10;
       RAND_MAX = 3276;
       NUM_HighScores = 8;
       MAX_KEYBOARD_KEYS = 350;
@@ -66,7 +80,7 @@ TYPE                                        { "T" short for "TYPE" }
      TString16   = String[MAX_SCORE_NAME_LENGTH];
      TString50   = String[MAX_STRING_LENGTH];
 
-     TDelegating = procedure; //(Logo, Highsc, Game);
+     TDelegating = procedure;  //(Logo, Highsc, Game);
      TDelegate   = RECORD
                      logic, draw : TDelegating;
                    end;
@@ -145,6 +159,8 @@ VAR app                  : TApp;
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
     gRemainder           : double;
+    MusicVol,
+    SoundVol,
     reveal,
     reveal_max,
     timeout,
@@ -258,8 +274,9 @@ begin
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
   if sounds[5] = NIL then errorMessage('Soundfile "342749__rhodesmas__notification-01.ogg" not found!');
 
+  SoundVol := 16;  {MIX_MAX_Volume}              {initialize}
   for i := 1 to 5 do
-    Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
+    Mix_VolumeChunk(sounds[i], SoundVol);        {MIX_MAX_VOLUME = 128 !!!}
 end;
 
 procedure loadMusic;
@@ -272,7 +289,8 @@ begin
   end;
   music := Mix_LoadMUS('music/Mercury.ogg');
   if music = NIL then errorMessage('Music: "Mercury.ogg" not found!');
-  Mix_VolumeMusic(MIX_MAX_VOLUME);
+  MusicVol := 32;  {MIX_MAX_VOLUME}              {initialize}
+  Mix_VolumeMusic(MusicVol);                     {MIX_MAX_VOLUME = 128 !!!}
 end;
 
 procedure playMusic(play : BOOLEAN);
@@ -391,7 +409,7 @@ begin
 end;
 
 function numberfill(a : integer) : TString50;
-VAR FMT : String;
+VAR FMT : TString16;
 begin
   Fmt := '[%.3d]';                  { Fmt: arguments for Format }
   numberfill := Format(Fmt, [a]);   { Format: format a String with given arguments (=> Fmt) }
@@ -472,9 +490,9 @@ end;
 procedure drawHud; INLINE;
 begin
   drawText(10, 10, 255, 255, 255, TEXT_LEFT, 'SCORE: ' + numberfill(stage.score));
-  if ((stage.score < HighScores[0].score))
-  then drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, 'HIGHSCORE: ' + numberfill(HighScores[0].score))
-  else drawText(SCREEN_WIDTH - 10, 10,   0, 255,   0, TEXT_RIGHT, 'HIGHSCORE: ' + numberfill(stage.score));
+  if ((stage.score <  HighScores[0].score))
+  then drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, 'MAX HIGHSCORE: ' + numberfill(HighScores[0].score))
+  else drawText(SCREEN_WIDTH - 10, 10,   0, 255,   0, TEXT_RIGHT, 'NEW HIGHSCORE: ' + numberfill(stage.score));
 end;
 
 procedure drawExplosions;
@@ -560,9 +578,9 @@ begin
   stage.pointsTail := e;
   e^.x := x;
   e^.y := y;
-  e^.dx := -1 * (RANDOM(RAND_MAX) MOD 5);
+  e^.dx := -1 * ((RANDOM(RAND_MAX) MOD 5) - 0.1);
   e^.dy := (RANDOM(RAND_MAX) MOD 5) - (RANDOM(RAND_MAX) MOD 5);
-  e^.health := FPS * POINTSPOD_TIME;
+  e^.health := FPS * 10;
   e^.Texture := pointsTexture;
   SDL_QueryTexture(e^.Texture, NIL, NIL, @dest.w, @dest.h);
   e^.w := dest.w;
@@ -861,6 +879,8 @@ begin
     if (e <> player) then
     begin
       e^.y := MIN(MAX(e^.y, 0), (SCREEN_HEIGHT - e^.h));
+      if e^.y <= 0 then e^.dy := -1 * e^.dy;
+      if e^.y >= (SCREEN_HEIGHT - e^.h) then e^.dy := -1 * e^.dy;
       DEC(e^.reload);
       if ((player <> NIL) AND (e^.reload <= 0)) then
       begin
@@ -1033,9 +1053,11 @@ end;
 
 //*****************  TITLE  **********************
 
-procedure drawLogo;
+procedure draw_Title;
 VAR r : TSDL_Rect;
 begin
+  drawBackground;
+  drawStarfield;
   r.x := 0;
   r.y := 0;
   SDL_QueryTexture(SDL2Texture, NIL, NIL, @r.w, @r.h);
@@ -1044,13 +1066,6 @@ begin
   SDL_QueryTexture(shooterTexture, NIL, NIL, @r.w, @r.h);
   r.h := MIN(reveal, r.h);
   blitRect(shooterTexture, @r, (SCREEN_WIDTH DIV 2) - (r.w DIV 2), 250);
-end;
-
-procedure draw_Title;
-begin
-  drawBackground;
-  drawStarfield;
-  drawLogo;
   if (timeout MOD 40) < 20 then
     drawText(SCREEN_WIDTH DIV 2, 600, 255, 255, 255, TEXT_CENTER, 'PRESS FIRE TO PLAY!');
 end;
@@ -1086,6 +1101,52 @@ begin
 end;
 
 // ***************  HIGHSCORE  ****************
+
+procedure emptyHighScore;  INLINE;
+VAR i : integer;
+begin
+  //FillChar(HighScores, SizeOf(THighScoreDef), 0);
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    HighScores[i].score := NUM_HighScores - i;
+    HighScores[i].name := 'ANONYMOUS';
+  end;
+end;
+
+procedure readHighScore;
+VAR i : integer;
+    filein : text;
+begin
+  assign (filein, 'gfx/HighScore.txt');
+  {$i-}; reset(filein); {$i+};
+  if IOresult <> 0 then            { HighScoreliste }
+  begin                            { neu erstellen  }
+    emptyHighScore;
+  end
+  else                             { HighScoreliste }
+  begin                            { einlesen       }
+    for i := 0 to PRED(NUM_HighScores) do
+    begin
+      readln(filein,HighScores[i].name);
+      readln(filein,HighScores[i].score);
+    end;
+    close(filein);
+  end;
+end;
+
+procedure writeHighScore;
+VAR i : integer;
+    fileout : text;
+begin
+  assign (fileout, 'gfx/HighScore.txt');
+  rewrite (fileout);
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    writeln(fileout,HighScores[i].name);
+    writeln(fileout,HighScores[i].score);
+  end;
+  close(fileout);
+end;
 
 Procedure Order(VAR p, q : integer);
 VAR temp : integer;
@@ -1191,10 +1252,8 @@ end;
 
 procedure drawHighScores;
 VAR i, y, r, g, b, o : integer;
-    p : TString16;
     a, Fmt : TString50;
 begin
-  p := ' ............';
   y := 150;
   drawText(SCREEN_WIDTH DIV 2, 70, 255, 255, 255, TEXT_CENTER, 'HIGHSCORES');
   for i := 0 to PRED(NUM_HighScores) do
@@ -1202,20 +1261,16 @@ begin
     r := 255;
     g := 255;
     b := 255;
-//    o := LENGTH(HighScores[i].name);
-//    a := '#' + IntToStr(i + 1) + ' ' + HighScores[i].name  +
-//         LEFTSTR(p, (MAX_SCORE_NAME_LENGTH - o)) + '..... ' + numberfill(HighScores[i].score);
     o := MAX_SCORE_NAME_LENGTH - LENGTH(HighScores[i].name) + 5;
     Fmt := '[%s%.d %s %-*.*s %.3d]';
     a := Format(fmt, ['#',i + 1, HighScores[i].name, o, o, '....................',HighScores[i].score]);
+
     if HighScores[i].recent = 1 then
       b := 0;
     drawText(SCREEN_WIDTH DIV 2, y, r, g, b, TEXT_CENTER, a);
     INC(y, 50);
   end;
 end;
-
-// *******  HIGHSCORE / TITLE LOGIC  **********
 
 procedure logic_HighSC;
 begin
@@ -1230,6 +1285,8 @@ begin
       initTitle;
     if (app.keyboard[SDL_ScanCode_LCTRL] = 1) then
       initStage;
+    if (app.keyboard[SDL_ScanCode_DELETE] = 1) then
+      emptyHighScore;
   end;
   INC(cursorBlink);
   if cursorBlink >= FPS then
@@ -1247,6 +1304,7 @@ begin
     drawHighScores;
     if ((timeout MOD 40) < 20) then
       drawText(SCREEN_WIDTH DIV 2, 600, 255, 255, 255, TEXT_CENTER, 'PRESS FIRE TO PLAY!');
+    drawText(SCREEN_WIDTH DIV 2, 650, 255, 255, 255, TEXT_CENTER, 'PRESS DEL TO RESET HIGHSCORE!');
   end;
 end;
 
@@ -1259,14 +1317,8 @@ begin
 end;
 
 procedure initHighScoreTable;
-VAR i : integer;
 begin
-  FillChar(HighScores, SizeOf(THighScoreDef), 0);
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    HighScores[i].score := NUM_HighScores - i;
-    HighScores[i].name := 'ANONYMOUS';
-  end;
+  readHighScore;
   newHighScoreFlag := FALSE;
   cursorBlink := 0;
 end;
@@ -1282,7 +1334,7 @@ begin
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then
     errorMessage(SDL_GetError());
 
-  app.Window := SDL_CreateWindow('Shooter 15', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+  app.Window := SDL_CreateWindow('Shooter 16', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
     errorMessage(SDL_GetError());
 
@@ -1332,6 +1384,7 @@ end;
 procedure cleanUp;
 VAR i : byte;
 begin
+  writeHighScore;
   resetStage;
   if stage.fighterHead   <> NIL then DISPOSE(stage.fighterHead);
   if stage.bulletHead    <> NIL then DISPOSE(stage.bulletHead);

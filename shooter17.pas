@@ -21,12 +21,28 @@ The original source and a lot of explanations can be found at:
 https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
-*** Title screen and finishing touches
-*** Procedural Parameters for Delegate Draw/Logic
-*** without momory holes; testet with: fpc -Criot -gl -gh shooter15.pas
+
+-drawHighScore repariert
+-C Opertoren += -= *= abgeschaltet
+-DrawHud wieder zurueckprogrammiert; MAX bzw NEW Highscore
+-HighScore wird auf Platte geschrieben / gelesen
+-loescht den Anonymous - Eintrag: score wird Null!
+-SDL-Quits erweitert
+-SDL VSync Flag im INIT Teil erweitert / hinzugefuegt
+-Logo scrollt jetzt immer statt nur einmal
+-enemy^.dx (-1) * dx eingefuegt
+-addpointspod geschwindigkeit um 0.1 verringert
+-loadsound errormeldungen korrigiert
+-ErrorMessage erweitert um Sound-Fehlermeldungen
+-Numberfill optimiert mit Format-Befehl Freepascal
+-Logo Draw optimiert
+-Menu fuer Sound & Musik eingebaut
+-Procedural Parameters for Delegate Draw/Logic
+-without momory holes; testet with: fpc -Criot -gl -gh shooter17.pas
+-integer divided with "/" mistake solved by DIV 
 ***************************************************************************}
 
-PROGRAM Shooter15;
+PROGRAM Shooter17;
 {$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
@@ -36,7 +52,6 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       PLAYER_SPEED  = 4.0;
       PLAYER_BULLET_SPEED = 20.0;
       ALIEN_BULLET_SPEED = 8.0;
-      POINTSPOD_TIME = 10;
       RAND_MAX = 3276;
       NUM_HighScores = 8;
       MAX_KEYBOARD_KEYS = 350;
@@ -46,6 +61,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SIDE_ALIEN = 1;
       FPS = 60;
       MAX_STARS = 500;
+      MAX_Menu = 5;     { 4 Eintraege }
 
       MAX_SND_CHANNELS = 8;
       SND_PLAYER_FIRE  = 1;
@@ -66,7 +82,7 @@ TYPE                                        { "T" short for "TYPE" }
      TString16   = String[MAX_SCORE_NAME_LENGTH];
      TString50   = String[MAX_STRING_LENGTH];
 
-     TDelegating = procedure; //(Logo, Highsc, Game);
+     TDelegating = procedure;  //(Logo, Highsc, Game, Menues);
      TDelegate   = RECORD
                      logic, draw : TDelegating;
                    end;
@@ -83,6 +99,7 @@ TYPE                                        { "T" short for "TYPE" }
                      textureHead, textureTail : PTextur;
                      inputText : String;
                      delegate : TDelegate;
+                     r_delegate : TDelegate;      { "R_" = short for Recent Value }
                    end;
      PEntity     = ^TEntity;
      TEntity     = RECORD
@@ -116,6 +133,12 @@ TYPE                                        { "T" short for "TYPE" }
      TStar       = RECORD
                      x, y, speed : integer;
                    end;
+     TM_place    = RECORD
+                     x, y, r, g, b : integer;
+                     Text  : TString16;
+                     HText : TString50;
+                   end;
+
      THighScoreDef = RECORD
                        name : TString16;
                        recent, score : integer;
@@ -142,9 +165,9 @@ VAR app                  : TApp;
     explosionTexture     : PSDL_Texture;
     Event                : TSDL_EVENT;
     newHighScoreFlag,
+    bMenue,
     exitLoop             : BOOLEAN;
     gTicks               : UInt32;
-    gRemainder           : double;
     reveal,
     reveal_max,
     timeout,
@@ -152,11 +175,16 @@ VAR app                  : TApp;
     backgroundX,
     enemyspawnTimer,
     resetTimer           : integer;
+    PM                   : ARRAY[1..MAX_Menu + 1] of TM_place;
     stars                : Array[0..MAX_STARS] OF TStar;
     music                : PMix_Music;
     sounds               : Array[1..SND_MAX] OF PMix_Chunk;
     HighScores           : THighScoreArray;
     newHighScore         : THighScoreDef;
+    SoundVol             : integer = 16;
+    MusicVol             : integer = 32;
+    gRemainder           : double = 0;
+    Auswahl              : byte = 1;
 
 // *****************   INIT   *****************
 
@@ -245,7 +273,6 @@ end;
 // *****************   SOUND  *****************
 
 procedure loadSounds;
-VAR i : byte;
 begin
   sounds[1] := Mix_LoadWAV('sound/334227__jradcoolness__laser.ogg');
   if sounds[1] = NIL then errorMessage('Soundfile "334227__jradcoolness__laser.ogg" not found!');
@@ -258,8 +285,11 @@ begin
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
   if sounds[5] = NIL then errorMessage('Soundfile "342749__rhodesmas__notification-01.ogg" not found!');
 
-  for i := 1 to 5 do
-    Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
+  Mix_VolumeChunk(sounds[1], SoundVol);          {Orginal: MIX_MAX_VOLUME = 128 !!!}
+  Mix_VolumeChunk(sounds[2], SoundVol);
+  Mix_VolumeChunk(sounds[3], SoundVol);
+  Mix_VolumeChunk(sounds[4], SoundVol);
+  Mix_VolumeChunk(sounds[5], SoundVol);
 end;
 
 procedure loadMusic;
@@ -272,7 +302,7 @@ begin
   end;
   music := Mix_LoadMUS('music/Mercury.ogg');
   if music = NIL then errorMessage('Music: "Mercury.ogg" not found!');
-  Mix_VolumeMusic(MIX_MAX_VOLUME);
+  Mix_VolumeMusic(MusicVol);                     {Orginal: MIX_MAX_VOLUME = 128 !!!}
 end;
 
 procedure playMusic(play : BOOLEAN);
@@ -391,7 +421,7 @@ begin
 end;
 
 function numberfill(a : integer) : TString50;
-VAR FMT : String;
+VAR FMT : TString16;
 begin
   Fmt := '[%.3d]';                  { Fmt: arguments for Format }
   numberfill := Format(Fmt, [a]);   { Format: format a String with given arguments (=> Fmt) }
@@ -472,9 +502,9 @@ end;
 procedure drawHud; INLINE;
 begin
   drawText(10, 10, 255, 255, 255, TEXT_LEFT, 'SCORE: ' + numberfill(stage.score));
-  if ((stage.score < HighScores[0].score))
-  then drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, 'HIGHSCORE: ' + numberfill(HighScores[0].score))
-  else drawText(SCREEN_WIDTH - 10, 10,   0, 255,   0, TEXT_RIGHT, 'HIGHSCORE: ' + numberfill(stage.score));
+  if ((stage.score <  HighScores[0].score))
+  then drawText(SCREEN_WIDTH - 10, 10, 255, 255, 255, TEXT_RIGHT, 'MAX HIGHSCORE: ' + numberfill(HighScores[0].score))
+  else drawText(SCREEN_WIDTH - 10, 10,   0, 255,   0, TEXT_RIGHT, 'NEW HIGHSCORE: ' + numberfill(stage.score));
 end;
 
 procedure drawExplosions;
@@ -560,9 +590,9 @@ begin
   stage.pointsTail := e;
   e^.x := x;
   e^.y := y;
-  e^.dx := -1 * (RANDOM(RAND_MAX) MOD 5);
+  e^.dx := -1 * ((RANDOM(RAND_MAX) MOD 5) - 0.1);
   e^.dy := (RANDOM(RAND_MAX) MOD 5) - (RANDOM(RAND_MAX) MOD 5);
-  e^.health := FPS * POINTSPOD_TIME;
+  e^.health := FPS * 10;
   e^.Texture := pointsTexture;
   SDL_QueryTexture(e^.Texture, NIL, NIL, @dest.w, @dest.h);
   e^.w := dest.w;
@@ -861,6 +891,8 @@ begin
     if (e <> player) then
     begin
       e^.y := MIN(MAX(e^.y, 0), (SCREEN_HEIGHT - e^.h));
+      if e^.y <= 0 then e^.dy := -1 * e^.dy;
+      if e^.y >= (SCREEN_HEIGHT - e^.h) then e^.dy := -1 * e^.dy;
       DEC(e^.reload);
       if ((player <> NIL) AND (e^.reload <= 0)) then
       begin
@@ -1033,9 +1065,11 @@ end;
 
 //*****************  TITLE  **********************
 
-procedure drawLogo;
+procedure draw_Title;
 VAR r : TSDL_Rect;
 begin
+  drawBackground;
+  drawStarfield;
   r.x := 0;
   r.y := 0;
   SDL_QueryTexture(SDL2Texture, NIL, NIL, @r.w, @r.h);
@@ -1044,13 +1078,6 @@ begin
   SDL_QueryTexture(shooterTexture, NIL, NIL, @r.w, @r.h);
   r.h := MIN(reveal, r.h);
   blitRect(shooterTexture, @r, (SCREEN_WIDTH DIV 2) - (r.w DIV 2), 250);
-end;
-
-procedure draw_Title;
-begin
-  drawBackground;
-  drawStarfield;
-  drawLogo;
   if (timeout MOD 40) < 20 then
     drawText(SCREEN_WIDTH DIV 2, 600, 255, 255, 255, TEXT_CENTER, 'PRESS FIRE TO PLAY!');
 end;
@@ -1086,6 +1113,52 @@ begin
 end;
 
 // ***************  HIGHSCORE  ****************
+
+procedure emptyHighScore;  INLINE;
+VAR i : integer;
+begin
+  //FillChar(HighScores, SizeOf(THighScoreDef), 0);
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    HighScores[i].score := NUM_HighScores - i;
+    HighScores[i].name := 'ANONYMOUS';
+  end;
+end;
+
+procedure readHighScore;
+VAR i : integer;
+    filein : text;
+begin
+  assign (filein, 'gfx/HighScore.txt');
+  {$i-}; reset(filein); {$i+};
+  if IOresult <> 0 then            { HighScoreliste }
+  begin                            { neu erstellen  }
+    emptyHighScore;
+  end
+  else                             { HighScoreliste }
+  begin                            { einlesen       }
+    for i := 0 to PRED(NUM_HighScores) do
+    begin
+      readln(filein,HighScores[i].name);
+      readln(filein,HighScores[i].score);
+    end;
+    close(filein);
+  end;
+end;
+
+procedure writeHighScore;
+VAR i : integer;
+    fileout : text;
+begin
+  assign (fileout, 'gfx/HighScore.txt');
+  rewrite (fileout);
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    writeln(fileout,HighScores[i].name);
+    writeln(fileout,HighScores[i].score);
+  end;
+  close(fileout);
+end;
 
 Procedure Order(VAR p, q : integer);
 VAR temp : integer;
@@ -1191,10 +1264,8 @@ end;
 
 procedure drawHighScores;
 VAR i, y, r, g, b, o : integer;
-    p : TString16;
     a, Fmt : TString50;
 begin
-  p := ' ............';
   y := 150;
   drawText(SCREEN_WIDTH DIV 2, 70, 255, 255, 255, TEXT_CENTER, 'HIGHSCORES');
   for i := 0 to PRED(NUM_HighScores) do
@@ -1202,12 +1273,10 @@ begin
     r := 255;
     g := 255;
     b := 255;
-//    o := LENGTH(HighScores[i].name);
-//    a := '#' + IntToStr(i + 1) + ' ' + HighScores[i].name  +
-//         LEFTSTR(p, (MAX_SCORE_NAME_LENGTH - o)) + '..... ' + numberfill(HighScores[i].score);
     o := MAX_SCORE_NAME_LENGTH - LENGTH(HighScores[i].name) + 5;
     Fmt := '[%s%.d %s %-*.*s %.3d]';
     a := Format(fmt, ['#',i + 1, HighScores[i].name, o, o, '....................',HighScores[i].score]);
+
     if HighScores[i].recent = 1 then
       b := 0;
     drawText(SCREEN_WIDTH DIV 2, y, r, g, b, TEXT_CENTER, a);
@@ -1230,6 +1299,8 @@ begin
       initTitle;
     if (app.keyboard[SDL_ScanCode_LCTRL] = 1) then
       initStage;
+  { if (app.keyboard[SDL_ScanCode_DELETE] = 1) then
+       emptyHighScore;  }
   end;
   INC(cursorBlink);
   if cursorBlink >= FPS then
@@ -1247,6 +1318,7 @@ begin
     drawHighScores;
     if ((timeout MOD 40) < 20) then
       drawText(SCREEN_WIDTH DIV 2, 600, 255, 255, 255, TEXT_CENTER, 'PRESS FIRE TO PLAY!');
+   {  drawText(SCREEN_WIDTH DIV 2, 650, 255, 255, 255, TEXT_CENTER, 'PRESS DEL TO RESET HIGHSCORE!');  }
   end;
 end;
 
@@ -1259,16 +1331,113 @@ begin
 end;
 
 procedure initHighScoreTable;
-VAR i : integer;
 begin
-  FillChar(HighScores, SizeOf(THighScoreDef), 0);
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    HighScores[i].score := NUM_HighScores - i;
-    HighScores[i].name := 'ANONYMOUS';
-  end;
+  readHighScore;
   newHighScoreFlag := FALSE;
   cursorBlink := 0;
+end;
+
+// *****************   MENU   *****************
+
+procedure logic_Menue;
+VAR rep : boolean;
+begin
+  doBackGround;
+  doStarfield;
+  if (app.keyboard[SDL_ScanCode_UP]   = 1) then begin DEC(Auswahl); rep := FALSE; end;
+  if (app.keyboard[SDL_ScanCode_DOWN] = 1) then begin INC(Auswahl); rep := FALSE; end;
+  if Auswahl < 1 then Auswahl := MAX_Menu;
+  if Auswahl > Max_Menu then Auswahl := 1;
+
+  if ((app.keyboard[SDL_ScanCode_LEFT]   = 1) AND (Auswahl = 1)) then begin DEC(SoundVol, 1); rep := TRUE;  end;     { SoundVolume }
+  if ((app.keyboard[SDL_ScanCode_RIGHT]  = 1) AND (Auswahl = 1)) then begin INC(SoundVol, 1); rep := TRUE;  end;
+  if ((app.keyboard[SDL_ScanCode_LEFT]   = 1) AND (Auswahl = 2)) then begin DEC(MusicVol, 4); rep := FALSE; end;     { MusicVolume }
+  if ((app.keyboard[SDL_ScanCode_RIGHT]  = 1) AND (Auswahl = 2)) then begin INC(MusicVol, 4); rep := FALSE; end;
+
+  if ((app.keyboard[SDL_ScanCode_DELETE] = 1) AND (Auswahl = 3)) then   { DELETE Highscore }
+  begin
+    Auswahl := 1;                                                       { Menue set to 1 }
+    timeout := FPS * 5;                                                 { reset the timer for to show Highscore }
+    bMenue := FALSE;                                                    { no Menue active now }
+    emptyHighScore;                                                     { delete Highscore }
+    app.delegate.logic := @logic_Highsc;                                { switch to Highscore logic }
+    app.delegate.draw  := @draw_Highsc;                                 { switch to Highscore draw  }
+  end;
+  if (((app.keyboard[SDL_ScanCode_RETURN] = 1)
+    OR (app.keyboard[SDL_ScanCode_SPACE] = 1)) AND (Auswahl = 4)) then  { leave the Menu }
+  begin
+    Auswahl := 1;                                                       { Menue set to 1 }
+    bMenue := FALSE;                                                    { no Menue active now }
+    app.delegate.logic := app.r_delegate.logic;                         { reset the old state of Logic }
+    app.delegate.draw  := app.r_delegate.draw;                          { reset the old state of Draw }
+  end;
+  if (((app.keyboard[SDL_ScanCode_RETURN] = 1)
+    OR (app.keyboard[SDL_ScanCode_SPACE] = 1)) AND (Auswahl = MAX_Menu)) then { EXIT the Game }
+    exitloop := true;
+
+  if (rep = FALSE) then FillChar(app.keyboard, SizeOf(app.Keyboard), 0); { empty keyboard puffer }
+
+  SoundVol := MIN(MAX(SoundVol, 0), MIX_MAX_VOLUME);                    { MIX_MAX_VOLUME = 128 !!! }
+  MusicVol := MIN(MAX(MusicVol, 0), MIX_MAX_VOLUME);                    { MIX_MAX_VOLUME = 128 !!! }
+  Mix_VolumeChunk(sounds[1], SoundVol);
+  Mix_VolumeChunk(sounds[2], SoundVol);
+  Mix_VolumeChunk(sounds[3], SoundVol);
+  Mix_VolumeChunk(sounds[4], SoundVol);
+  Mix_VolumeChunk(sounds[5], SoundVol);
+  Mix_VolumeMusic(MusicVol);
+end;
+
+procedure draw_Bar(a : TSDL_Rect; wwith, vol, max : integer);
+begin
+  a.w := round((wwith - 4) * vol DIV max);                                { Dreisatz zur Balkenbreite }
+  SDL_SetRenderDrawColor(app.renderer, 0, 255, 0, 255);                 { gruen }
+  SDL_RenderFillRect(app.renderer, @a);                                 { Volume }
+  a.x := a.x - 3;   a.y := a.y - 3;
+  a.w := wwith + 2; a.h := a.h + 6;
+  SDL_SetRenderDrawColor(app.renderer, 255, 255, 255, 255);             { weiss }
+  SDL_RenderDrawRect(app.renderer, @a);                                 { Umrandung }
+end;
+
+procedure draw_Menue;
+VAR i, k : byte;
+    r : TSDL_Rect;
+begin
+  k := Max_Menu + 1;
+  PM[1].x := 650;                  PM[1].y := 200;                                      { Menupoint 1 }
+  PM[2].x := PM[1].x;              PM[2].y := 280;                                      { Menupoint 2 }
+  PM[3].x := PM[1].x;              PM[3].y := 360;                                      { Menupoint 3 }
+  PM[4].x := PM[1].x;              PM[4].y := 440;                                      { Menupoint 4 }
+  PM[5].x := PM[1].x;              PM[5].y := 520;                                      { Menupoint 5 }
+  PM[k].x := SCREEN_WIDTH DIV 2;   PM[k].y := SCREEN_HEIGHT - 50;                       { Hilfstext }
+  PM[1].Text := 'SOUND VOLUME:';   PM[1].HText := 'PRESS ARROW-KEYS TO CHANGE SOUND VOLUME!';
+  PM[2].Text := 'MUSIC VOLUME:';   PM[2].HText := 'PRESS ARROW-KEYS TO CHANGE MUSIC VOLUME!';
+  PM[3].Text := 'RESET HIGHSCORE'; PM[3].HText := 'PRESS DEL TO RESET THE HIGHSCORE';
+  PM[4].Text := 'BACK TO GAME!';   PM[4].HText := 'PRESS SPACE OR ENTER TO PLAY GAME!';
+  PM[5].Text := 'QUIT THE GAME!';  PM[5].HText := 'PRESS SPACE OR ENTER TO QUIT GAME!';
+
+  drawBackGround;
+  drawStarfield;
+  for i := 1 to Max_Menu do                                                             { schreibe Menue }
+  begin
+    if i = Auswahl then
+    begin
+      drawText(PM[i].x - 170, PM[i].y, 0, 255, 0, TEXT_CENTER, '>');                    { gruener Cursor }
+      drawText(PM[i].x - 155, PM[i].y, 0, 255, 0, TEXT_LEFT, PM[i].Text);               { gruener Text }
+    end
+    else
+      drawText(PM[i].x - 155, PM[i].y, 255, 255, 255, TEXT_LEFT, PM[i].Text);           { weisser Text }
+  end;
+  drawText(PM[k].x, PM[k].y, 255, 255, 255, TEXT_CENTER, PM[Auswahl].HText);            { Hilfstext Anzeige }
+
+  r.x := PM[1].x + 90; r.y := 190; r.w := 260; r.h :=  40;                              { Balkenanzeige }
+  draw_Bar(r, 284, SoundVol, MIX_MAX_VOLUME);
+  r.x := PM[1].x + 90; r.y := 270; r.w := 260; r.h :=  40;
+  draw_Bar(r, 284, MusicVol, MIX_MAX_VOLUME);
+
+  drawText(PM[1].x + 240, PM[1].y, 255, 255, 255, TEXT_CENTER, NumberFill(SoundVol*100 div 128));   { Sound Volumen in % }
+  drawText(PM[2].x + 240, PM[2].y, 255, 255, 255, TEXT_CENTER, NumberFill(MusicVol*100 div 128));   { Music Volumen in % }
+  drawText(PM[1].x + 260, PM[1].y, 255, 255, 255, TEXT_LEFT, '%');
+  drawText(PM[2].x + 260, PM[2].y, 255, 255, 255, TEXT_LEFT, '%');
 end;
 
 // ***************   INIT SDL   ***************
@@ -1282,7 +1451,7 @@ begin
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then
     errorMessage(SDL_GetError());
 
-  app.Window := SDL_CreateWindow('Shooter 15', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+  app.Window := SDL_CreateWindow('Shooter 17', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
     errorMessage(SDL_GetError());
 
@@ -1304,8 +1473,8 @@ begin
   app.inputText    := '';
   newHighScoreFlag := FALSE;
   exitLoop         := FALSE;
+  bMenue           := FALSE;
   gTicks           := SDL_GetTicks;
-  gRemainder       := 0;
   music            := NIL;
   initStageListenPointer;
   initBackground;
@@ -1332,6 +1501,7 @@ end;
 procedure cleanUp;
 VAR i : byte;
 begin
+  writeHighScore;
   resetStage;
   if stage.fighterHead   <> NIL then DISPOSE(stage.fighterHead);
   if stage.bulletHead    <> NIL then DISPOSE(stage.bulletHead);
@@ -1360,6 +1530,30 @@ begin
   SDL_ShowCursor(1);
 end;
 
+// *************   DELEGATE LOGIC   ***********
+
+{procedure delegate_logic(Wahl : TDelegating);
+begin
+  CASE Wahl of
+  Logo : begin
+           logic_Title;
+           draw_Title;
+         end;
+  HighSC : begin
+             logic_HighSC;
+             draw_HighSC;
+           end;
+  Menues : begin
+             logic_Menue;
+             draw_Menue;
+           end;
+  Game : begin
+           logic_Game;
+           draw_Game;
+         end;
+  end;
+end;}
+
 // *****************   Input  *****************
 
 procedure doInput;
@@ -1369,13 +1563,20 @@ begin
   begin
     CASE Event.Type_ of
 
-      SDL_QUITEV:          exitLoop := TRUE;        { close Window }
-      SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
+      SDL_QUITEV:          exitLoop := TRUE;                        { close Window }
+      SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;                        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
                      if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 1;
-                     if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
+                     if ((app.keyboard[SDL_ScanCode_ESCAPE] = 1) AND (bMenue = FALSE)) then
+                     begin
+                       app.r_delegate.logic := app.delegate.logic;  { save the old state }
+                       app.r_delegate.draw  := app.delegate.draw;   { save the old state }
+                       app.delegate.logic := @logic_Menue;          { switch to menue }
+                       app.delegate.draw  := @draw_Menue;           { switch to menue }
+                       bMenue := TRUE;                              { menue is active now }
+                     end;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
@@ -1403,26 +1604,6 @@ begin
   remainder := remainder + 0.667;
   Ticks := SDL_GetTicks;
 end;
-
-// *************   DELEGATE LOGIC   ***********
-
-{procedure delegate_logic(Wahl : TDelegating);
-begin
-  CASE Wahl of
-  Logo : begin
-           logic_Title;
-           draw_Title;
-         end;
-  HighSC : begin
-             logic_HighSC;
-             draw_HighSC;
-           end;
-  Game : begin
-           logic_Game;
-           draw_Game;
-         end;
-  end;
-end; }
 
 // *****************   MAIN   *****************
 

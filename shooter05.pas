@@ -27,8 +27,8 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter5;
-
-{$COPERATORS OFF} {$mode FPC} {$H+}
+{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
@@ -84,9 +84,9 @@ end;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage(Message : PChar);
+procedure errorMessage(Message : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,'Error Box',Message,NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
   HALT(1);
 end;
 
@@ -101,9 +101,9 @@ begin
   SDL_RenderCopy(app.Renderer, Texture, NIL, @dest);
 end;
 
-function loadTexture(Pfad : PChar) : PSDL_Texture;
+function loadTexture(Pfad : String) : PSDL_Texture;
 begin
-  loadTexture := IMG_LoadTexture(app.Renderer, Pfad);
+  loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
   if loadTexture = NIL then errorMessage(SDL_GetError());
 end;
 

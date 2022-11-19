@@ -26,8 +26,8 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter3;
-
-{$COPERATORS OFF} {$mode FPC} {$H+}
+{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }

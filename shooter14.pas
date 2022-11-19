@@ -27,8 +27,8 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter14;
-
-{$COPERATORS OFF} {$mode FPC} {$H+}
+{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
@@ -1011,7 +1011,7 @@ begin
   playerTexture      := loadTexture('gfx/player.png');
   explosionTexture   := loadTexture('gfx/explosion.png');
   pointsTexture      := loadTexture('gfx/points.png');
-  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
+  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);     { empty keyboard puffer }
   resetStage;
   stage.score := 0;
   initPlayer;
@@ -1193,7 +1193,7 @@ end;
 
 procedure initHighScore;
 begin
-  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);
+  FillChar(app.keyboard, SizeOf(app.Keyboard), 0);     { empty keyboard puffer }
   app.delegate.logic := @logic_HighSC;
   app.delegate.draw  := @draw_HighSC;
 end;

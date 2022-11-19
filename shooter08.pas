@@ -28,8 +28,8 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter8;
-
-{$COPERATORS OFF} {$mode FPC} {$H+}
+{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image, Math;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
@@ -382,7 +382,7 @@ begin
 end;
 
 procedure resetStage;
-VAR e,t : PEntity;
+VAR e, t : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do

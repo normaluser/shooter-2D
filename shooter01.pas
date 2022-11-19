@@ -26,15 +26,15 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter1;
-
-{$COPERATORS OFF} {$mode FPC} {$H+}
+{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$COPERATORS OFF}
 USES CRT, SDL2;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE
-     TApp    = RECORD                       { "T" short for "TYPE" }
+TYPE                                        { "T" short for "TYPE" }
+     TApp    = RECORD
                   Window   : PSDL_Window;
                   Renderer : PSDL_Renderer;
                 end;

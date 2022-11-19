@@ -24,11 +24,12 @@ converted from "C" to "Pascal" by Ulrich 2021
 *** Sound and music
 *** Procedural Parameters for Delegate Draw/Logic
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter10.pas
+*** integer divided with "/" mistake solved by DIV 
 ***************************************************************************}
 
 PROGRAM Shooter10;
-
-{$COPERATORS OFF} {$mode FPC} {$H+}
+{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$COPERATORS OFF}
 USES CRT, SDL2, SDL2_Image, SDL2_Mixer, Math;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
@@ -376,8 +377,8 @@ procedure addDebris(e : PEntity);
 VAR d : PDebris;
     x, y, w, h : integer;
 begin
-  w := TRUNC(e^.w / 2);
-  h := TRUNC(e^.h / 2);
+  w := e^.w DIV 2;
+  h := e^.h DIV 2;
   x := 0; y := 0;
   while y <= h do
   begin
@@ -387,8 +388,8 @@ begin
       initDebris(d);
       stage.debrisTail^.next := d;
       stage.debrisTail := d;
-      d^.x := e^.x + (e^.w / 2);
-      d^.y := e^.y + (e^.h / 2);
+      d^.x := e^.x + (e^.w DIV 2);
+      d^.y := e^.y + (e^.h DIV 2);
       d^.dx := (RANDOM(RAND_MAX) MOD 5) - (RANDOM(RAND_MAX) MOD 5);
       d^.dy := -1 * (5 + (RANDOM(RAND_MAX) MOD 12));
       d^.life := FPS * 2;
@@ -704,9 +705,9 @@ begin
 end;
 
 procedure resetStage;
-VAR e,t  : PEntity;
-    ex,u : PExplosion;
-    d,v  : PDebris;
+VAR e, t  : PEntity;
+    ex, u : PExplosion;
+    d, v  : PDebris;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
@@ -747,7 +748,6 @@ begin
   initPlayer;
   initStarfield;
   enemyspawnTimer := 0;
-
   resetTimer := FPS * 3;
 end;
 

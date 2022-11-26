@@ -128,7 +128,7 @@ end;
 
 procedure doKeyDown;
 begin
-  if Event.key._repeat = 0 then
+  if Event.key.repeat_ = 0 then
   begin
     CASE Event.key.keysym.sym of
       SDLK_ESCAPE: exitLoop := TRUE;                { close Window with ESC-Key }
@@ -143,7 +143,7 @@ end;
 
 procedure doKeyUp;
 begin
-  if Event.key._repeat = 0 then
+  if Event.key.repeat_ = 0 then
   begin
     CASE Event.key.keysym.sym of
       SDLK_LEFT,   SDLK_KP_4: app.left  := 0;

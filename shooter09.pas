@@ -24,8 +24,8 @@ converted from "C" to "Pascal" by Ulrich 2021
 *** Effects and background grafics
 *** Procedural Parameters for Delegate Draw/Logic
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter09.pas
-*** e^.side initialisiert!! 
-*** integer divided with "/" mistake solved by DIV 
+*** e^.side initialisiert!!
+*** integer divided with "/" mistake solved by DIV
 ***************************************************************************}
 
 PROGRAM Shooter9;
@@ -781,13 +781,13 @@ begin
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }

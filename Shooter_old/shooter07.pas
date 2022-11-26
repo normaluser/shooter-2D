@@ -345,11 +345,11 @@ end;
 procedure Loesch_Liste(a : PEntity);
 VAR t : PEntity;
 begin
-  t := a;
-  while (t <> NIL) do
-  begin a := t;
-    DISPOSE(t);
+  while (a <> NIL) do
+  begin
     t := a^.next;
+    DISPOSE(a);
+    a := t;
   end;
 end;
 
@@ -385,13 +385,13 @@ begin
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }

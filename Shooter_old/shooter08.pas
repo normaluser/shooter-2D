@@ -22,6 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Enemies shoot back!
+*** without momory holes; testet with: fpc -Criot -gl -gh shooter08.pas
 ***************************************************************************}
 
 PROGRAM Shooter8;
@@ -379,24 +380,22 @@ begin
 end;
 
 procedure resetStage;
-VAR e : PEntity;
+VAR e,t : PEntity;
 begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.fighterHead^.next;
-    stage.fighterHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   e := stage.bulletHead^.next;
   while (e <> NIL) do
   begin
-    e := stage.bulletHead^.next;
-    stage.bulletHead^.next := e^.next;
+    t := e^.next;
     DISPOSE(e);
-    e := e^.next;
+    e := t;
   end;
 
   stage.fighterTail := stage.fighterHead;
@@ -498,13 +497,13 @@ begin
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }

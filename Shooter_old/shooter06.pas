@@ -22,7 +22,6 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Enemies on the screen
-*** without momory holes; testet with: fpc -Criot -gl -gh shooter06.pas
 ***************************************************************************}
 
 PROGRAM Shooter6;
@@ -39,7 +38,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       FPS = 60;
 
 TYPE
-     TDelegating = (Game);                  { "T" short for "TYPE" }
+     TDelegating = procedure;               { "T" short for "TYPE" }
      TDelegate  = RECORD                    { "T" short for "TYPE" }
                     logic, draw : TDelegating;
                   end;
@@ -66,7 +65,6 @@ VAR app                  : TApp;
     player,
     enemy,
     bullet               : PEntity;
-    CachePlayerTex,
     CacheEnemyTex,
     CacheBulletTex       : PSDL_Texture;
     Event                : TSDL_EVENT;
@@ -77,7 +75,7 @@ VAR app                  : TApp;
 
 // *****************   INIT   *****************
 
-procedure initEntity(VAR e : PEntity);
+procedure initEntity(e : PEntity);
 begin
   e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
@@ -255,7 +253,7 @@ begin
   player^.x := 100;
   player^.y := 100;
   player^.reload := 8;
-  player^.Texture := CachePlayerTex;
+  player^.Texture := loadTexture('gfx/player.png');
   SDL_QueryTexture(player^.Texture, NIL, NIL, @dest.w, @dest.h);
   player^.w := dest.w;
   player^.h := dest.h;
@@ -271,19 +269,18 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := Game;
-  app.delegate.draw  := Game;
+  app.delegate.logic := @logic_Game;
+  app.delegate.draw  := @draw_Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   initEntity(stage.fighterHead);
   initEntity(stage.bulletHead);
   stage.fighterTail := stage.fighterHead;
   stage.bulletTail  := stage.bulletHead;
-  CachePlayerTex    := loadTexture('gfx/player.png');
+  initPlayer;
   CacheBulletTex    := loadTexture('gfx/playerBullet.png');
   CacheEnemyTex     := loadTexture('gfx/enemy.png');
   enemyspawnTimer   := 0;
-  initPlayer;
 end;
 
 // ***************   INIT SDL   ***************
@@ -325,15 +322,15 @@ procedure cleanUp;
 begin
   Loesch_Liste(stage.fighterHead^.next);
   Loesch_Liste(stage.bulletHead^.next);
-  DISPOSE(stage.fighterHead);
-  DISPOSE(stage.bulletHead);
+  //DISPOSE(stage.fighterHead);
+  //DISPOSE(stage.bulletHead);
   if ExitCode <> 0 then WriteLn('CleanUp complete!');
 end;
 
 procedure AtExit;
 begin
   if ExitCode <> 0 then cleanUp;
-  SDL_DestroyTexture (CacheplayerTex);
+  SDL_DestroyTexture (player^.Texture);
   SDL_DestroyTexture (CacheEnemyTex);
   SDL_DestroyTexture (CacheBulletTex);
   SDL_DestroyRenderer(app.Renderer);
@@ -354,13 +351,13 @@ begin
       SDL_MOUSEBUTTONDOWN: exitLoop := TRUE;        { if Mousebutton pressed }
 
       SDL_KEYDOWN: begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 1;
                      if (app.keyboard[SDL_ScanCode_ESCAPE]) = 1 then exitLoop := TRUE;
                    end;   { SDL_Keydown }
 
       SDL_KEYUP:   begin
-                     if ((Event.key._repeat = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
+                     if ((Event.key.repeat_ = 0) AND (Event.key.keysym.scancode < MAX_KEYBOARD_KEYS)) then
                        app.keyboard[Event.key.keysym.scancode] := 0;
                    end;   { SDL_Keyup }
     end;  { CASE Event }
@@ -382,18 +379,6 @@ begin
   Ticks := SDL_GetTicks;
 end;
 
-// *************   DELEGATE LOGIC   ***********
-
-procedure delegate_logic(Wahl : TDelegating);
-begin
-  CASE Wahl of
-  Game : begin
-           logic_Game;
-           draw_Game;
-         end;
-  end;
-end;
-
 // *****************   MAIN   *****************
 
 begin
@@ -410,7 +395,8 @@ begin
   begin
     prepareScene;
     doInput;
-    delegate_logic(app.delegate.logic);
+    app.delegate.logic;
+    app.delegate.draw;
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;

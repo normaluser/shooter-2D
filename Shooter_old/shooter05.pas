@@ -201,7 +201,7 @@ VAR dest : TSDL_Rect;
 begin
   NEW(player);
   initEntity(player);
-  stage.fighterTail^.next := player^.next;
+  stage.fighterTail^.next := player;
   stage.fighterTail := player;
   player^.x := 100;
   player^.y := 100;

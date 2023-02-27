@@ -340,6 +340,7 @@ end;
 
 function loadTexture(Pfad : String) : PSDL_Texture;
 VAR tl : PSDL_Texture;
+    Fmt : PChar;
 begin
   tl := getTexture(Pfad);
   if tl = NIL then
@@ -348,6 +349,8 @@ begin
     if tl = NIL then errorMessage(SDL_GetError());
     addTextureToCache(Pfad, tl);
   end;
+  Fmt := 'Loading %s'#13;
+  SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,  Fmt, [PChar(Pfad)]);
   loadTexture := tl;
 end;
 

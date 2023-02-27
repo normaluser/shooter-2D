@@ -137,9 +137,12 @@ begin
 end;
 
 function loadTexture(Pfad : String) : PSDL_Texture;
+VAR Fmt : PChar;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
   if loadTexture = NIL then errorMessage(SDL_GetError());
+  Fmt := 'Loading %s'#13;
+  SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,  Fmt, [PChar(Pfad)]);
 end;
 
 procedure prepareScene;

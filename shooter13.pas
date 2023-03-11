@@ -224,21 +224,28 @@ begin
   HALT(1);
 end;
 
+procedure logMessage(Message1 : string);
+VAR Fmt : PChar;
+begin
+  Fmt := 'File not found: %s'#13;    // Formatstring und "array of const" als Parameteruebergabe in [ ]
+  SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN, Fmt, [PChar(Message1)]);
+end;
+
 // *****************   SOUND  *****************
 
 procedure loadSounds;
 VAR i : byte;
 begin
   sounds[1] := Mix_LoadWAV('sound/334227__jradcoolness__laser.ogg');
-  if sounds[1] = NIL then errorMessage('Soundfile "334227__jradcoolness__laser.ogg" not found!');
+  if sounds[1] = NIL then logMessage('Soundfile: "334227__jradcoolness__laser.ogg"');
   sounds[2] := Mix_LoadWAV('sound/196914__dpoggioli__laser-gun.ogg');
-  if sounds[2] = NIL then errorMessage('Soundfile "196914__dpoggioli__laser-gun.ogg" not found!');
+  if sounds[2] = NIL then logMessage('Soundfile: "196914__dpoggioli__laser-gun.ogg"');
   sounds[3] := Mix_LoadWAV('sound/245372__quaker540__hq-explosion.ogg');
-  if sounds[3] = NIL then errorMessage('Soundfile "245372__quaker540__hq-explosion.ogg" not found!');
+  if sounds[3] = NIL then logMessage('Soundfile: "245372__quaker540__hq-explosion.ogg"');
   sounds[4] := Mix_LoadWAV('sound/10 Guage Shotgun-SoundBible.com-74120584.ogg');
-  if sounds[4] = NIL then errorMessage('Soundfile "10 Guage Shotgun-SoundBible.com-74120584.ogg" not found!');
+  if sounds[4] = NIL then logMessage('Soundfile: "10 Guage Shotgun-SoundBible.com-74120584.ogg"');
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
-  if sounds[5] = NIL then errorMessage('Soundfile "342749__rhodesmas__notification-01.ogg" not found!');
+  if sounds[5] = NIL then logMessage('Soundfile: "342749__rhodesmas__notification-01.ogg"');
 
   for i := 1 to 5 do
     Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
@@ -253,7 +260,7 @@ begin
     music := NIL;
   end;
   music := Mix_LoadMUS('music/Mercury.ogg');
-  if music = NIL then errorMessage('Music: "Mercury.ogg" not found!');
+  if music = NIL then logMessage('Music: "Mercury.ogg"');
   Mix_VolumeMusic(MIX_MAX_VOLUME);
 end;
 

@@ -25,36 +25,35 @@ converted from "C" to "Pascal" by Ulrich 2021
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter04.pas
 ***************************************************************************}
 
-PROGRAM Shooter4;
+PROGRAM Shooter04;
 {$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
-USES CRT, SDL2, SDL2_Image;
+USES SDL2, SDL2_Image;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE                                        { "T" short for "TYPE" }
-     TApp    = RECORD
-                  Window   : PSDL_Window;
-                  Renderer : PSDL_Renderer;
-                  up, down, left, right, fire : integer;
-                end;
+TYPE TApp    = RECORD                       { "T" short for "TYPE" }
+                 Window   : PSDL_Window;
+                 Renderer : PSDL_Renderer;
+                 up, down, left, right, fire : integer;
+               end;
      TEntity = RECORD
-                  x, y, dx, dy, health : integer;
-                  Texture : PSDL_Texture;
-                end;
+                 x, y, dx, dy, health : integer;
+                 Texture : PSDL_Texture;
+               end;
 
-VAR app              : TApp;
+VAR app      : TApp;
     player,
-    bullet           : TEntity;
-    Event            : TSDL_EVENT;
-    exitLoop         : BOOLEAN;
+    bullet   : TEntity;
+    Event    : TSDL_EVENT;
+    exitLoop : BOOLEAN;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage(Message : String);
+procedure errorMessage1(Message1 : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message1),NIL);
   HALT(1);
 end;
 
@@ -73,7 +72,7 @@ function loadTexture(Pfad : String) : PSDL_Texture;
 VAR Fmt : PChar;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
-  if loadTexture = NIL then errorMessage(SDL_GetError());
+  if loadTexture = NIL then errorMessage1(SDL_GetError());
   Fmt := 'Loading %s'#13;
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,  Fmt, [PChar(Pfad)]);
 end;
@@ -94,20 +93,20 @@ end;
 procedure initSDL;
 VAR rendererFlags, windowFlags : integer;
 begin
-  rendererFlags := SDL_RENDERER_PRESENTVSYNC OR SDL_RENDERER_ACCELERATED;
+  rendererFlags := {SDL_RENDERER_PRESENTVSYNC OR} SDL_RENDERER_ACCELERATED;
   windowFlags := 0;
 
   if SDL_Init(SDL_INIT_VIDEO) < 0 then
-    errorMessage(SDL_GetError());
+    errorMessage1(SDL_GetError());
 
   app.Window := SDL_CreateWindow('Shooter 04', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
-    errorMessage(SDL_GetError());
+    errorMessage1(SDL_GetError());
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);
   if app.Renderer = NIL then
-    errorMessage(SDL_GetError());
+    errorMessage1(SDL_GetError());
 
   IMG_INIT(IMG_INIT_PNG OR IMG_INIT_JPG);
   SDL_ShowCursor(0);
@@ -173,7 +172,6 @@ end;
 // *****************   MAIN   *****************
 
 begin
-  CLRSCR;
   InitSDL;
   AddExitProc(@AtExit);
   exitLoop := FALSE;
@@ -186,9 +184,9 @@ begin
   begin
     prepareScene;
     doInput;
-    if app.up = 1 then    player.y := player.y - 4;
-    if app.down = 1 then  player.y := player.y + 4;
-    if app.left = 1 then  player.x := player.x - 4;
+    if app.up = 1    then player.y := player.y - 4;
+    if app.down = 1  then player.y := player.y + 4;
+    if app.left = 1  then player.x := player.x - 4;
     if app.right = 1 then player.x := player.x + 4;
     if ((app.fire = 1) AND (bullet.health = 0)) then
     begin

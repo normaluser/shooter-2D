@@ -25,19 +25,19 @@ converted from "C" to "Pascal" by Ulrich 2021
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter01.pas
 ***************************************************************************}
 
-PROGRAM Shooter1;
+PROGRAM Shooter01;
 {$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
-USES CRT, SDL2;
+USES SDL2;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
 
-TYPE                                        { "T" short for "TYPE" }
-     TApp    = RECORD
-                  Window   : PSDL_Window;
-                  Renderer : PSDL_Renderer;
-                end;
+
+TYPE TApp    = RECORD                       { "T" short for "TYPE" }
+                 Window   : PSDL_Window;
+                 Renderer : PSDL_Renderer;
+               end;
 
 VAR app      : TApp;
     Event    : TSDL_EVENT;
@@ -61,7 +61,7 @@ end;
 procedure initSDL;
 VAR rendererFlags, windowFlags : integer;
 begin
-  rendererFlags := SDL_RENDERER_PRESENTVSYNC OR SDL_RENDERER_ACCELERATED;
+  rendererFlags := {SDL_RENDERER_PRESENTVSYNC OR} SDL_RENDERER_ACCELERATED;
   windowFlags := 0;
   if SDL_Init(SDL_INIT_VIDEO) < 0 then
   begin
@@ -108,7 +108,6 @@ end;
 // *****************   MAIN   *****************
 
 begin
-  CLRSCR;
   InitSDL;
   AddExitProc(@AtExit);
   exitLoop := FALSE;

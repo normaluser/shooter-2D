@@ -26,10 +26,10 @@ converted from "C" to "Pascal" by Ulrich 2021
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter07.pas
 ***************************************************************************}
 
-PROGRAM Shooter7;
+PROGRAM Shooter07;
 {$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
-USES CRT, SDL2, SDL2_Image;
+USES SDL2, SDL2_Image;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
@@ -41,46 +41,45 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SIDE_ALIEN = 1;
       FPS = 60;
 
-TYPE                                        { "T" short for "TYPE" }
-     TDelegating = Procedure;
-     TDelegate = RECORD
-                    logic, draw : TDelegating;
-                  end;
-     TApp     = RECORD
-                  Window   : PSDL_Window;
-                  Renderer : PSDL_Renderer;
-                  keyboard : Array[0..MAX_KEYBOARD_KEYS] OF integer;
-                  delegate : TDelegate;
-                end;
-     PEntity  = ^TEntity;
-     TEntity  = RECORD
-                  x, y, dx, dy : double;
-                  w, h, health, reload, side : integer;
-                  Texture : PSDL_Texture;
-                  next : PEntity;
-                end;
-     TStage   = RECORD
-                  fighterHead, fighterTail,
-                  bulletHead, bulletTail     : PEntity;
-                end;
+TYPE TDelegating    = Procedure;            { "T" short for "TYPE" }
+     TDelegate      = RECORD
+                        logic, draw : TDelegating;
+                      end;
+     TApp           = RECORD
+                        Window   : PSDL_Window;
+                        Renderer : PSDL_Renderer;
+                        keyboard : ARRAY[0..MAX_KEYBOARD_KEYS] OF integer;
+                        delegate : TDelegate;
+                      end;
+     PEntity        = ^TEntity;
+     TEntity        = RECORD
+                        x, y, dx, dy : double;
+                        w, h, health, reload, side : integer;
+                        Texture : PSDL_Texture;
+                        next : PEntity;
+                      end;
+     TStage         = RECORD
+                        fighterHead, fighterTail,
+                        bulletHead, bulletTail : PEntity;
+                      end;
 
-VAR app                  : TApp;
-    stage                : TStage;
+VAR app             : TApp;
+    stage           : TStage;
     player,
     enemy,
-    bullet               : PEntity;
-    CacheplayerTex,
+    bullet          : PEntity;
+    CachePlayerTex,
     CacheEnemyTex,
-    CacheBulletTex       : PSDL_Texture;
-    Event                : TSDL_EVENT;
-    exitLoop             : BOOLEAN;
-    gTicks               : UInt32;
-    gRemainder           : double;
-    enemyspawnTimer      : integer;
+    CacheBulletTex  : PSDL_Texture;
+    Event           : TSDL_EVENT;
+    exitLoop        : BOOLEAN;
+    gTicks          : UInt32;
+    gRemainder      : double;
+    enemyspawnTimer : integer;
 
 // *****************   INIT   *****************
 
-procedure initEntity(VAR e : PEntity);
+procedure initEntity(e : PEntity);
 begin
   e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL; e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
@@ -88,28 +87,28 @@ end;
 
 // *****************   UTIL   *****************
 
-function collision(x1, y1, w1, h1, x2, y2, w2, h2 : integer) : BOOLEAN;
+function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : BOOLEAN;
 VAR a_Rect, b_Rect : TSDL_Rect;
 begin
   collision := FALSE;
-  a_Rect.x := x1; a_Rect.y := y1; a_Rect.w := w1; a_Rect.h := h1;
-  b_Rect.x := x2; b_Rect.y := y2; b_Rect.w := w2; b_Rect.h := h2;
+  a_Rect.x := ROUND(x1); a_Rect.y := ROUND(y1); a_Rect.w := ROUND(w1); a_Rect.h := ROUND(h1);
+  b_Rect.x := ROUND(x2); b_Rect.y := ROUND(y2); b_Rect.w := ROUND(w2); b_Rect.h := ROUND(h2);
   if (SDL_HasIntersection(@a_Rect, @b_Rect) = SDL_TRUE) then collision := TRUE;
 end;
 
-procedure errorMessage(Message : String);
+procedure errorMessage1(Message1 : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message1),NIL);
   HALT(1);
 end;
 
 // *****************   DRAW   *****************
 
-procedure blit(Texture : PSDL_Texture; x, y : integer);
+procedure blit(Texture : PSDL_Texture; x, y : double);
 VAR dest : TSDL_Rect;
 begin
-  dest.x := x;
-  dest.y := y;
+  dest.x := TRUNC(x);
+  dest.y := TRUNC(y);
   SDL_QueryTexture(Texture, NIL, NIL, @dest.w, @dest.h);
   SDL_RenderCopy(app.Renderer, Texture, NIL, @dest);
 end;
@@ -118,7 +117,7 @@ function loadTexture(Pfad : String) : PSDL_Texture;
 VAR Fmt : PChar;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
-  if loadTexture = NIL then errorMessage(SDL_GetError());
+  if loadTexture = NIL then errorMessage1(SDL_GetError());
   Fmt := 'Loading %s'#13;
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,  Fmt, [PChar(Pfad)]);
 end;
@@ -142,7 +141,7 @@ begin
   b := stage.bulletHead^.next;
   while (b <> NIL) do
   begin
-    blit(b^.Texture, TRUNC(b^.x), TRUNC(b^.y));
+    blit(b^.Texture, b^.x, b^.y);
     b := b^.next;
   end;
 end;
@@ -153,7 +152,7 @@ begin
   e := stage.fighterHead^.next;
   while (e <> NIL) do
   begin
-    blit(e^.Texture, TRUNC(e^.x), TRUNC(e^.y));
+    blit(e^.Texture, e^.x, e^.y);
     e := e^.next;
   end;
 end;
@@ -187,23 +186,23 @@ begin
   end;
 end;
 
-function bulletHitFighter(b : PEntity) : BOOLEAN;    { b = Bullet; e = Fighter }
-VAR e : PEntity;
+function bulletHitFighter(b : PEntity) : BOOLEAN;    { b = Bullet; f = Fighter }
+VAR f : PEntity;
 begin
-  e := stage.fighterHead^.next;
+  f := stage.fighterHead^.next;
   bulletHitFighter := FALSE;
-  while (e <> NIL) do
+  while (f <> NIL) do
   begin
-    if (e^.side <> b^.side) then
+    if (f^.side <> b^.side) then
     begin
-      if (collision(TRUNC(b^.x), TRUNC(b^.y), b^.w, b^.h, TRUNC(e^.x), TRUNC(e^.y), e^.w, e^.h) = TRUE) then
+      if (collision(b^.x, b^.y, b^.w, b^.h, f^.x, f^.y, f^.w, f^.h) = TRUE) then
       begin
         b^.health := 0;
-        e^.health := 0;
+        f^.health := 0;
         bulletHitFighter := TRUE;
       end;
     end;
-    e := e^.next;
+    f := f^.next;
   end;
 end;
 
@@ -263,7 +262,6 @@ begin
   bullet^.dx := PLAYER_BULLET_SPEED;
   bullet^.health := 1;
   bullet^.Texture := CacheBulletTex;
-//  bullet^.side := player^.side;
   SDL_QueryTexture(bullet^.Texture, NIL, NIL, @dest.w, @dest.h);
   bullet^.w := dest.w;
   bullet^.h := dest.h;
@@ -294,7 +292,7 @@ begin
   stage.fighterTail := player;
   player^.x := 100;
   player^.y := 100;
-  player^.Texture := CacheplayerTex;
+  player^.Texture := CachePlayerTex;
   SDL_QueryTexture(player^.Texture, NIL, NIL, @dest.w, @dest.h);
   player^.w := dest.w;
   player^.h := dest.h;
@@ -319,7 +317,7 @@ begin
   initEntity(stage.bulletHead);
   CacheBulletTex    := loadTexture('gfx/playerBullet.png');
   CacheEnemyTex     := loadTexture('gfx/enemy.png');
-  CacheplayerTex    := loadTexture('gfx/player.png');
+  CachePlayerTex    := loadTexture('gfx/player.png');
   stage.fighterTail := stage.fighterHead;
   stage.bulletTail  := stage.bulletHead;
   initPlayer;
@@ -331,20 +329,20 @@ end;
 procedure initSDL;
 VAR rendererFlags, windowFlags : integer;
 begin
-  rendererFlags := SDL_RENDERER_PRESENTVSYNC OR SDL_RENDERER_ACCELERATED;
+  rendererFlags := {SDL_RENDERER_PRESENTVSYNC OR} SDL_RENDERER_ACCELERATED;
   windowFlags := 0;
 
   if SDL_Init(SDL_INIT_VIDEO) < 0 then
-    errorMessage(SDL_GetError());
+    errorMessage1(SDL_GetError());
 
   app.Window := SDL_CreateWindow('Shooter 07', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
-    errorMessage(SDL_GetError());
+    errorMessage1(SDL_GetError());
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);
   if app.Renderer = NIL then
-    errorMessage(SDL_GetError());
+    errorMessage1(SDL_GetError());
 
   IMG_INIT(IMG_INIT_PNG OR IMG_INIT_JPG);
   SDL_ShowCursor(0);
@@ -373,8 +371,8 @@ end;
 procedure AtExit;
 begin
   if ExitCode <> 0 then cleanUp;
-  SDL_DestroyTexture (CacheplayerTex);
-  SDL_DestroyTexture (CacheBulletTex);
+  SDL_DestroyTexture (CachePlayerTex);
+  SDL_DestroyTexture (CacheEnemyTex);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
@@ -409,7 +407,7 @@ end;
 // *************   CAPFRAMERATE   *************
 
 procedure CapFrameRate(VAR remainder : double; VAR Ticks : UInt32);
-VAR wait, FrameTime : longint;
+VAR wait, FrameTime : longInt;
 begin
   wait := 16 + TRUNC(remainder);
   remainder := remainder - TRUNC(remainder);
@@ -424,7 +422,6 @@ end;
 // *****************   MAIN   *****************
 
 begin
-  CLRSCR;
   RANDOMIZE;
   InitSDL;
   AddExitProc(@AtExit);

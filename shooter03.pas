@@ -50,7 +50,7 @@ VAR app      : TApp;
 
 // *****************   UTIL   *****************
 
-procedure errorMessage1(Message1 : String);
+procedure errorMessage(Message1 : String);
 begin
   SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message1),NIL);
   HALT(1);
@@ -71,7 +71,7 @@ function loadTexture(Pfad : String) : PSDL_Texture;
 VAR Fmt : PChar;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
-  if loadTexture = NIL then errorMessage1(SDL_GetError());
+  if loadTexture = NIL then errorMessage(SDL_GetError());
   Fmt := 'Loading %s'#13;
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,  Fmt, [PChar(Pfad)]);
 end;

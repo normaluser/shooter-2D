@@ -22,10 +22,9 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 
--quick & dirty Menu included
+-quick & dirty Menu included, "ESC" show menu during game
 -Highscore saved as file
 -without momory holes; testet with: fpc -Criot -gl -gh shooter18.pas
-
 ***************************************************************************}
 
 PROGRAM Shooter18;
@@ -129,8 +128,8 @@ TYPE TString16   = String[MAX_SCORE_NAME_LENGTH];
                        name : TString16;
                        recent, score : integer;
                      end;
-     THighScoreARRAY =     ARRAY[0..PRED(NUM_HighScores)] OF THighScoreDef;
-     TnewHighScoresARRAY = ARRAY[0..NUM_HighScores] OF THighScoreDef;
+     THighScoreArray =     ARRAY[0..PRED(NUM_HighScores)] OF THighScoreDef;
+     TnewHighScoresArray = ARRAY[0..NUM_HighScores] OF THighScoreDef;
 
      TAlignment = (TEXT_LEFT, TEXT_CENTER, TEXT_RIGHT);
 
@@ -165,7 +164,7 @@ VAR app                  : TApp;
     stars                : ARRAY[0..MAX_STARS] OF TStar;
     sounds               : ARRAY[1..SND_MAX] OF PMix_Chunk;
     music                : PMix_Music;
-    HighScores           : THighScoreARRAY;
+    HighScores           : THighScoreArray;
     newHighScore         : THighScoreDef;
     SoundVol             : integer = 16;
     MusicVol             : integer = 32;
@@ -491,7 +490,7 @@ begin
   temp := p; p := q; q := temp;
 end;
 
-procedure Bubble(VAR B : TnewHighScoresARRAY; n : integer);
+procedure Bubble(VAR B : TnewHighScoresArray; n : integer);
 VAR i, j, min : integer;
 begin
   for i := 0 to PRED(n) do
@@ -510,7 +509,7 @@ begin
 end;
 
 procedure addHighScore(score : integer);
-VAR newHighScores : TnewHighScoresARRAY;
+VAR newHighScores : TnewHighScoresArray;
     k : integer;
 begin
   for k := 0 to PRED(NUM_HighScores) do

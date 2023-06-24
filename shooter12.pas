@@ -22,11 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Score pods
-*** Procedural Parameters for Delegate Draw/Logic
 *** without momory holes; testet with: fpc -Criot -gl -gh shooter12.pas
-*** integer divided with "/" mistake solved by DIV
-*** doBullets "out of range" - bug fixed; player bullets
-*** will be deleted little outside of the screen to avoid pointerproblems
 ***************************************************************************}
 
 PROGRAM Shooter12;
@@ -179,13 +175,13 @@ begin
   end;
 end;
 
-procedure errorMessage1(Message1 : String);
+procedure errorMessage(Message1 : String);
 begin
   SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message1),NIL);
   HALT(1);
 end;
 
-procedure logMessage1(Message1 : string);
+procedure logMessage(Message1 : string);
 VAR Fmt : PChar;
 begin
   Fmt := 'File not found: %s'#13;    // Formatstring und "ARRAY of const" als Parameteruebergabe in [ ]
@@ -198,15 +194,15 @@ procedure loadSounds;
 VAR i : byte;
 begin
   sounds[1] := Mix_LoadWAV('sound/334227__jradcoolness__laser.ogg');
-  if sounds[1] = NIL then logMessage1('Soundfile: "334227__jradcoolness__laser.ogg"');
+  if sounds[1] = NIL then logMessage('Soundfile: "334227__jradcoolness__laser.ogg"');
   sounds[2] := Mix_LoadWAV('sound/196914__dpoggioli__laser-gun.ogg');
-  if sounds[2] = NIL then logMessage1('Soundfile: "196914__dpoggioli__laser-gun.ogg"');
+  if sounds[2] = NIL then logMessage('Soundfile: "196914__dpoggioli__laser-gun.ogg"');
   sounds[3] := Mix_LoadWAV('sound/245372__quaker540__hq-explosion.ogg');
-  if sounds[3] = NIL then logMessage1('Soundfile: "245372__quaker540__hq-explosion.ogg"');
+  if sounds[3] = NIL then logMessage('Soundfile: "245372__quaker540__hq-explosion.ogg"');
   sounds[4] := Mix_LoadWAV('sound/10 Guage Shotgun-SoundBible.com-74120584.ogg');
-  if sounds[4] = NIL then logMessage1('Soundfile: "10 Guage Shotgun-SoundBible.com-74120584.ogg"');
+  if sounds[4] = NIL then logMessage('Soundfile: "10 Guage Shotgun-SoundBible.com-74120584.ogg"');
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
-  if sounds[5] = NIL then logMessage1('Soundfile: "342749__rhodesmas__notification-01.ogg"');
+  if sounds[5] = NIL then logMessage('Soundfile: "342749__rhodesmas__notification-01.ogg"');
 
   for i := 1 to 5 do
     Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
@@ -221,7 +217,7 @@ begin
     music := NIL;
   end;
   music := Mix_LoadMUS('music/Mercury.ogg');
-  if music = NIL then logMessage1('Music: "Mercury.ogg"');
+  if music = NIL then logMessage('Music: "Mercury.ogg"');
   Mix_VolumeMusic(MIX_MAX_VOLUME);
 end;
 
@@ -267,7 +263,7 @@ function loadTexture(Pfad : String) : PSDL_Texture;
 VAR Fmt : PChar;
 begin
   loadTexture := IMG_LoadTexture(app.Renderer, PChar(Pfad));
-  if loadTexture = NIL then errorMessage1(SDL_GetError());
+  if loadTexture = NIL then errorMessage(SDL_GetError());
   Fmt := 'Loading %s'#13;
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,  Fmt, [PChar(Pfad)]);
 end;
@@ -961,20 +957,20 @@ begin
   windowFlags := 0;
 
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then
-    errorMessage1(SDL_GetError());
+    errorMessage(SDL_GetError());
 
   app.Window := SDL_CreateWindow('Shooter 12', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if app.Window = NIL then
-    errorMessage1(SDL_GetError());
+    errorMessage(SDL_GetError());
 
   if MIX_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0 then
-    errorMessage1(SDL_GetError());
+    errorMessage(SDL_GetError());
   Mix_AllocateChannels(MAX_SND_CHANNELS);
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);
   if app.Renderer = NIL then
-    errorMessage1(SDL_GetError());
+    errorMessage(SDL_GetError());
 
   IMG_INIT(IMG_INIT_PNG OR IMG_INIT_JPG);
   SDL_ShowCursor(0);

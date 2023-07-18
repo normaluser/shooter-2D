@@ -24,7 +24,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 
 -quick & dirty Menu included, "ESC" show menu during game
 -Highscore saved as file
--without momory holes; testet with: fpc -Criot -gl -gh shooter18.pas
+-without memory holes; testet with: fpc -Criot -gl -gh shooter18.pas
 ***************************************************************************}
 
 PROGRAM Shooter18;
@@ -233,13 +233,18 @@ end;
 
 // *****************   UTIL   *****************
 
-function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : BOOLEAN; INLINE;
+{function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : BOOLEAN;
 VAR a_Rect, b_Rect : TSDL_Rect;
 begin
   collision := FALSE;
   a_Rect.x := ROUND(x1); a_Rect.y := ROUND(y1); a_Rect.w := ROUND(w1); a_Rect.h := ROUND(h1);
   b_Rect.x := ROUND(x2); b_Rect.y := ROUND(y2); b_Rect.w := ROUND(w2); b_Rect.h := ROUND(h2);
   if (SDL_HasIntersection(@a_Rect, @b_Rect) = SDL_TRUE) then collision := TRUE;
+end;  }
+
+function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : Boolean;
+begin
+  collision := (MAX(x1, x2) < MIN(x1 + w1, x2 + w2)) AND (MAX(y1, y2) < MIN(y1 + h1, y2 + h2));
 end;
 
 procedure calcSlope(x1, y1, x2, y2 : double; VAR dx, dy : double); INLINE;

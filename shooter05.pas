@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Refactoring: pointers for linked lists
-*** without momory holes; testet with: fpc -Criot -gl -gh shooter05.pas
+*** without memory holes; testet with: fpc -Criot -gl -gh shooter05.pas
 ***************************************************************************}
 
 PROGRAM Shooter05;

@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Enemies on the screen
-*** without momory holes; testet with: fpc -Criot -gl -gh shooter06.pas
+*** without memory holes; testet with: fpc -Criot -gl -gh shooter06.pas
 ***************************************************************************}
 
 PROGRAM Shooter06;

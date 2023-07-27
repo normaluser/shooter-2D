@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ******************************************************************************
 *** Title screen and finishing touches
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter15-atlas.pas
+*** without memory holes; testet with: fpc -Criot -gl -gh shooter15-fa.pas
 ******************************************************************************}
 
 PROGRAM Shooter15_fps_atlas;
@@ -32,7 +32,7 @@ USES SDL2, SDL2_Image, SDL2_Mixer, Math, JsonTools, sysutils;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
-      PLAYER_SPEED  = 4.0;
+      PLAYER_SPEED   = 4.0;
       PLAYER_BULLET_SPEED = 20.0;
       ALIEN_BULLET_SPEED = 8.0;
       POINTSPOD_TIME = 10.0;
@@ -43,8 +43,8 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       MAX_STRING_LENGTH = 50;
       SIDE_PLAYER = 0;
       SIDE_ALIEN = 1;
-      cFPS = 60;     { Ganzzahlig }
-      LOGIC_RATE = (cFPS / 1000);   { Logic_Rate => real number }
+      cFPS = 60;                       { Ganzzahlig }
+      LOGIC_RATE = (cFPS / 1000);      { Logic_Rate => real number }
       MAX_STARS = 500;
 
       MAX_SND_CHANNELS = 8;
@@ -125,7 +125,8 @@ TYPE TDelegating = Procedure;               { "T" short for "TYPE" }
                      score : integer;
                    end;
      TStar       = RECORD
-                     x, y, speed : integer;
+                     x, y : double;
+                     speed : integer;
                    end;
      THighScoreDef = RECORD
                        name : TString16;
@@ -188,7 +189,7 @@ begin
   e^.r := 0;   e^.g := 0;   e^.b  := 0;   e^.a  := 0;   e^.next := NIL;
 end;
 
-procedure initAtlasImage(VAR e : PAtlasImage);
+procedure initAtlasImage(e : PAtlasImage);
 begin
   e^.FNam := ''; e^.Rot := 0; e^.Tex := NIL; e^.next := NIL;
 end;
@@ -215,15 +216,6 @@ begin
 end;
 
 // *****************   UTIL   *****************
-
-{function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : BOOLEAN;
-VAR a_Rect, b_Rect : TSDL_Rect;
-begin
-  collision := FALSE;
-  a_Rect.x := ROUND(x1); a_Rect.y := ROUND(y1); a_Rect.w := ROUND(w1); a_Rect.h := ROUND(h1);
-  b_Rect.x := ROUND(x2); b_Rect.y := ROUND(y2); b_Rect.w := ROUND(w2); b_Rect.h := ROUND(h2);
-  if (SDL_HasIntersection(@a_Rect, @b_Rect) = SDL_TRUE) then collision := TRUE;
-end;  }
 
 function collision(x1, y1, w1, h1, x2, y2, w2, h2 : double) : Boolean;
 begin
@@ -267,7 +259,7 @@ begin
   HALT(1);
 end;
 
-procedure logMessage(Message1 : string);
+procedure logMessage(Message1 : String);
 VAR Fmt : PChar;
 begin
   Fmt := 'File not found: %s'#13;    // Formatstring und "ARRAY of const" als Parameteruebergabe in [ ]
@@ -276,9 +268,9 @@ end;
 
 procedure pathTest;
 begin
-  if NOT FileExists(Json_Path) then errorMessage(Json_Path + ' nicht gefunden!');
-  if NOT FileExists(Tex_Path) then errorMessage(Tex_Path + ' nicht gefunden!');
-  if NOT FileExists(Font_Path) then errorMessage(Font_Path + ' nicht gefunden!');
+  if NOT FileExists(Json_Path) then errorMessage(Json_Path + ' not found!');
+  if NOT FileExists(Tex_Path)  then errorMessage(Tex_Path  + ' not found!');
+  if NOT FileExists(Font_Path) then errorMessage(Font_Path + ' not found!');
 end;
 
 // *****************   SOUND  *****************
@@ -582,7 +574,7 @@ begin
     c := 32 * stars[i].speed;
     if c > 255 then c := 255;
     SDL_SetRenderDrawColor(app.Renderer, c, c, c, 255);
-    SDL_RenderDrawLine(app.Renderer, stars[i].x, stars[i].y, stars[i].x + 3, stars[i].y);
+    SDL_RenderDrawLine(app.Renderer, TRUNC(stars[i].x), TRUNC(stars[i].y), TRUNC(stars[i].x + 3), TRUNC(stars[i].y));
   end;
 end;
 
@@ -591,15 +583,15 @@ VAR i : integer;
 begin
   for i := 0 to PRED(MAX_STARS) do
   begin
-    stars[i].x := TRUNC(stars[i].x - stars[i].speed * app.deltatime);        //ok
+    stars[i].x := stars[i].x - stars[i].speed * app.deltatime;
     if stars[i].x <= 0 then
-      INC(stars[i].x, SCREEN_WIDTH);
+      stars[i].x := stars[i].x + SCREEN_WIDTH;
   end;
 end;
 
 procedure doBackGround;
 begin
-  backgroundX := backgroundX - app.deltaTime;                                //ok
+  backgroundX := backgroundX - app.deltaTime;
   if backgroundX < (-SCREEN_WIDTH) then
     backgroundX := 0;
 end;
@@ -1371,7 +1363,7 @@ begin
 //         LEFTSTR(p, (MAX_SCORE_NAME_LENGTH - o)) + '..... ' + numberfill(HighScores[i].score);
     o := MAX_SCORE_NAME_LENGTH - LENGTH(HighScores[i].name) + 5;
     Fmt := '[%s%.d %s %-*.*s %.3d]';
-    a := Format(fmt, ['#',i + 1, HighScores[i].name, o, o, '....................',HighScores[i].score]);
+    a := Format(Fmt, ['#',i + 1, HighScores[i].name, o, o, '....................',HighScores[i].score]);
     if HighScores[i].recent = 1 then
       b := 0;
     drawText(SCREEN_WIDTH DIV 2, y, r, g, b, TEXT_CENTER, a);
@@ -1440,7 +1432,7 @@ end;
 procedure initSDL;
 VAR rendererFlags, windowFlags : integer;
 begin
-  rendererFlags := {SDL_RENDERER_PRESENTVSYNC OR} SDL_RENDERER_ACCELERATED;
+  rendererFlags := SDL_RENDERER_ACCELERATED;
   windowFlags := 0;
 
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then

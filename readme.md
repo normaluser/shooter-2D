@@ -6,7 +6,7 @@ The repository contains the source code for all 15 parts.
 
 The original tutorial (and "c" - source code) can be found at: https://www.parallelrealities.co.uk/tutorials/#shooter
 
-Another variant can be found in the SDL2FPC-Tutorials made by a chinese programmer...  
+Another variant / adaption can be found in the SDL2FPC-Tutorials made by a chinese programmer...  
 
 # Dependencies
 

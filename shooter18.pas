@@ -164,7 +164,6 @@ VAR app                  : TApp;
     music                : PMix_Music;
     HighScores           : THighScoreARRAY;
     newHighScore         : THighScoreDef;
-    N, C                 : TJsonNode;
     SoundVol             : integer = 16;
     MusicVol             : integer = 32;
     gRemainder           : double = 0;
@@ -1127,11 +1126,12 @@ end;
 
 procedure readHighScore;
 VAR i : integer;
+    N, C : TJsonNode;
 begin
-  if FileExists('Highscore.json') then
+  if FileExists(ScorePath) then
   begin
     N := TJsonNode.Create;
-    N.LoadFromFile('Highscore.json');
+    N.LoadFromFile(ScorePath);
     for i := 0 to 7 do
     begin
       for c in n do
@@ -1140,6 +1140,7 @@ begin
         HighScores[i].score := c.Child(i).Child(1).asInteger;
       end;
     end;
+    N.Free;
   end
   else
   begin
@@ -1149,12 +1150,14 @@ end;
 
 procedure writeHighScore;
 VAR i : integer;
+    N : TJsonNode;
 begin
+  N := TJsonNode.Create;
   for i := 0 to PRED(NUM_HighScores) do
   begin
     N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
   end;
-  N.SaveToFile('Highscore.json');
+  N.SaveToFile(ScorePath);
   N.Free;
 end;
 
@@ -1322,7 +1325,6 @@ end;
 
 procedure initHighScore;
 begin
-  N := TJsonNode.Create;
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);     { empty keyboard puffer }
   app.delegate.logic := @logic_HighSC;
   app.delegate.draw  := @draw_HighSC;

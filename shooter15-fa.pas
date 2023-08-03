@@ -32,7 +32,7 @@ USES SDL2, SDL2_Image, SDL2_Mixer, Math, JsonTools, sysutils;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
-      PLAYER_SPEED   = 4.0;
+      PLAYER_SPEED  = 4.0;
       PLAYER_BULLET_SPEED = 20.0;
       ALIEN_BULLET_SPEED = 8.0;
       POINTSPOD_TIME = 10.0;
@@ -66,6 +66,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       Json_Path        = 'data/atlas.json';
       Tex_Path         = 'gfx/atlas.png';
       Font_Path        = 'gfx/font.png';
+      ScorePath        = 'Highscore.json';
 
 TYPE TDelegating = Procedure;               { "T" short for "TYPE" }
      TString16   = String[MAX_SCORE_NAME_LENGTH];
@@ -1243,6 +1244,53 @@ end;
 
 // ***************  HIGHSCORE  ****************
 
+procedure emptyHighScore;
+VAR i : integer;
+begin
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    HighScores[i].score := NUM_HighScores - i;
+    HighScores[i].name := 'ANONYMOUS';
+  end;
+end;
+
+procedure readHighScore;
+VAR i : integer;
+    N, C : TJsonNode;
+begin
+  if FileExists(ScorePath) then
+  begin
+    N := TJsonNode.Create;
+    N.LoadFromFile(ScorePath);
+    for i := 0 to 7 do
+    begin
+      for c in n do
+      begin
+        HighScores[i].name  := c.Child(i).Child(0).asString;
+        HighScores[i].score := c.Child(i).Child(1).asInteger;
+      end;
+    end;
+    N.Free;
+  end
+  else
+  begin
+    emptyHighScore;
+  end;
+end;
+
+procedure writeHighScore;
+VAR i : integer;
+    N : TJsonNode;
+begin
+  N := TJsonNode.Create;
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
+  end;
+  N.SaveToFile(ScorePath);
+  N.Free;
+end;
+
 procedure Order(VAR p, q : integer);
 VAR temp : integer;
 begin
@@ -1415,14 +1463,9 @@ begin
 end;
 
 procedure initHighScoreTable;
-VAR i : integer;
 begin
   FillChar(HighScores, SizeOf(THighScoreDef), 0);
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    HighScores[i].score := NUM_HighScores - i;
-    HighScores[i].name := 'ANONYMOUS';
-  end;
+  readHighScore;
   newHighScoreFlag := FALSE;
   cursorBlink := 0;
 end;
@@ -1495,6 +1538,7 @@ begin
   SDL_DestroyTexture(atlasTex);
   SDL_DestroyTexture(explode);
   SDL_DestroyTexture(fontTexture);
+  writeHighScore;
   emptyArray;
   resetStage;
   resetLists;

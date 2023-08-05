@@ -167,6 +167,8 @@ VAR app              : TApp;
     stars            : ARRAY[0..MAX_STARS] OF TStar;
     sounds           : ARRAY[1..SND_MAX] OF PMix_Chunk;
     music            : PMix_Music;
+    SoundVol         : integer = 16;
+    MusicVol         : integer = 32;
     HighScores       : THighScoreARRAY;
     newHighScore     : THighScoreDef;
 
@@ -1281,6 +1283,8 @@ VAR i : integer;
     N : TJsonNode;
 begin
   N := TJsonNode.Create;
+  N.Force('Volume').Add('sound',SoundVol);
+  N.Force('Volume').Add('music',MusicVol);
   for i := 0 to PRED(NUM_HighScores) do
   begin
     N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
@@ -1288,6 +1292,18 @@ begin
   N.SaveToFile(ScorePath);
   N.Free;
 end;
+{procedure writeHighScore;
+VAR i : integer;
+    N : TJsonNode;
+begin
+  N := TJsonNode.Create;
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
+  end;
+  N.SaveToFile(ScorePath);
+  N.Free;
+end;}
 
 procedure Order(VAR p, q : integer);
 VAR temp : integer;

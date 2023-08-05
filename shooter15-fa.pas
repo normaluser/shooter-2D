@@ -1262,13 +1262,11 @@ begin
   begin
     N := TJsonNode.Create;
     N.LoadFromFile(ScorePath);
+    N := N.Find('Highscore');
     for i := 0 to 7 do
     begin
-      for c in n do
-      begin
-        HighScores[i].name  := c.Child(i).Child(0).asString;
-        HighScores[i].score := c.Child(i).Child(1).asInteger;
-      end;
+      HighScores[i].name  := N.Child(i).Child(0).asString;
+      HighScores[i].score := N.Child(i).Child(1).asInteger;
     end;
     N.Free;
   end

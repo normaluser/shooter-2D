@@ -1132,13 +1132,14 @@ begin
   begin
     N := TJsonNode.Create;
     N.LoadFromFile(ScorePath);
+
+    soundvol := N.Find('Volume/sound').asinteger;
+    musicvol := N.Find('Volume/music').asinteger;
+    N := N.Find('Highscore');
     for i := 0 to 7 do
     begin
-      for c in n do
-      begin
-        HighScores[i].name  := c.Child(i).Child(0).asString;
-        HighScores[i].score := c.Child(i).Child(1).asInteger;
-      end;
+      HighScores[i].name  := n.Child(i).Child(0).asString;
+      HighScores[i].score := n.Child(i).Child(1).asInteger;
     end;
     N.Free;
   end
@@ -1153,6 +1154,8 @@ VAR i : integer;
     N : TJsonNode;
 begin
   N := TJsonNode.Create;
+  N.Force('Volume').Add('sound',SoundVol);
+  N.Force('Volume').Add('music',MusicVol);
   for i := 0 to PRED(NUM_HighScores) do
   begin
     N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
@@ -1354,6 +1357,8 @@ begin
   if ((app.keyboard[SDL_ScanCode_RIGHT]  = 1) AND (Auswahl = 1)) then begin INC(SoundVol, 1); rep := TRUE;  end;
   if ((app.keyboard[SDL_ScanCode_LEFT]   = 1) AND (Auswahl = 2)) then begin DEC(MusicVol, 4); rep := FALSE; end;     { MusicVolume }
   if ((app.keyboard[SDL_ScanCode_RIGHT]  = 1) AND (Auswahl = 2)) then begin INC(MusicVol, 4); rep := FALSE; end;
+
+  writeHighScore;    { save the Volume }
 
   if ((app.keyboard[SDL_ScanCode_DELETE] = 1) AND (Auswahl = 3)) then   { DELETE Highscore }
   begin

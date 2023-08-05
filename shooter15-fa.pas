@@ -1292,18 +1292,6 @@ begin
   N.SaveToFile(ScorePath);
   N.Free;
 end;
-{procedure writeHighScore;
-VAR i : integer;
-    N : TJsonNode;
-begin
-  N := TJsonNode.Create;
-  for i := 0 to PRED(NUM_HighScores) do
-  begin
-    N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
-  end;
-  N.SaveToFile(ScorePath);
-  N.Free;
-end;}
 
 procedure Order(VAR p, q : integer);
 VAR temp : integer;

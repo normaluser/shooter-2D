@@ -23,6 +23,8 @@ converted from "C" to "Pascal" by Ulrich 2021
 ******************************************************************************
 *** Title screen and finishing touches
 *** without memory holes; testet with: fpc -Criot -gl -gh shooter15-fa.pas
+*** shooter15-fa should run in it's own directory, 
+*** or rename "Higscore.json" to "Highscore1.json" in line 71 for to have less problems... :) 
 ******************************************************************************}
 
 PROGRAM Shooter15_fps_atlas;

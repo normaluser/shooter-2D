@@ -167,8 +167,8 @@ VAR app              : TApp;
     stars            : ARRAY[0..MAX_STARS] OF TStar;
     sounds           : ARRAY[1..SND_MAX] OF PMix_Chunk;
     music            : PMix_Music;
-    SoundVol         : integer = 16;
-    MusicVol         : integer = 32;
+    SoundVol         : integer;
+    MusicVol         : integer;
     HighScores       : THighScoreARRAY;
     newHighScore     : THighScoreDef;
 
@@ -1264,17 +1264,32 @@ begin
   begin
     N := TJsonNode.Create;
     N.LoadFromFile(ScorePath);
-    N := N.Find('Highscore');
+
+    if (N.Exists('Volume/sound')) then
+    begin
+      C := N.Find('Volume');
+      SoundVol := C.Find('sound').asInteger;
+      MusicVol := C.Find('music').AsInteger;
+    end
+    else
+    begin
+      SoundVol := -1;
+      MusicVol := -1;
+    end;
+
+    C := N.Find('Highscore');
     for i := 0 to 7 do
     begin
-      HighScores[i].name  := N.Child(i).Child(0).asString;
-      HighScores[i].score := N.Child(i).Child(1).asInteger;
+      HighScores[i].name  := C.Child(i).Child(0).asString;
+      HighScores[i].score := C.Child(i).Child(1).asInteger;
     end;
     N.Free;
   end
   else
   begin
     emptyHighScore;
+    SoundVol := -1;
+    MusicVol := -1;
   end;
 end;
 
@@ -1283,8 +1298,12 @@ VAR i : integer;
     N : TJsonNode;
 begin
   N := TJsonNode.Create;
-  N.Force('Volume').Add('sound',SoundVol);
-  N.Force('Volume').Add('music',MusicVol);
+  if (SoundVol <> -1) OR (MusicVol <> -1) then
+  begin
+    N.Force('Volume').Add('sound',SoundVol);
+    N.Force('Volume').Add('music',MusicVol);
+  end;
+
   for i := 0 to PRED(NUM_HighScores) do
   begin
     N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
@@ -1292,6 +1311,19 @@ begin
   N.SaveToFile(ScorePath);
   N.Free;
 end;
+
+{procedure writeHighScore;
+VAR i : integer;
+    N : TJsonNode;
+begin
+  N := TJsonNode.Create;
+  for i := 0 to PRED(NUM_HighScores) do
+  begin
+    N.Force('Highscore').Add.Add('name', HighScores[i].name).Parent.Add('score:', HighScores[i].score);
+  end;
+  N.SaveToFile(ScorePath);
+  N.Free;
+end;}
 
 procedure Order(VAR p, q : integer);
 VAR temp : integer;

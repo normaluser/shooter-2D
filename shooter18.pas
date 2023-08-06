@@ -1132,14 +1132,16 @@ begin
   begin
     N := TJsonNode.Create;
     N.LoadFromFile(ScorePath);
-
-    soundvol := N.Find('Volume/sound').asinteger;
-    musicvol := N.Find('Volume/music').asinteger;
-    N := N.Find('Highscore');
+    if (N.Child(0).name = 'Volume') then
+    begin
+      soundvol := N.Find('Volume/sound').asinteger;
+      musicvol := N.Find('Volume/music').asinteger;
+    end;
+    C := N.Find('Highscore');
     for i := 0 to 7 do
     begin
-      HighScores[i].name  := n.Child(i).Child(0).asString;
-      HighScores[i].score := n.Child(i).Child(1).asInteger;
+      HighScores[i].name  := C.Child(i).Child(0).asString;
+      HighScores[i].score := C.Child(i).Child(1).asInteger;
     end;
     N.Free;
   end

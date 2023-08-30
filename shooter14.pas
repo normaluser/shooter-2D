@@ -619,10 +619,10 @@ begin
     initExplosion(e);
     stage.explosionTail^.next := e;
     stage.explosionTail := e;
-    e^.x  := x + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
-    e^.y  := y + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
-    e^.dx :=     (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
-    e^.dy :=     (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
+    e^.x  := TRUNC(x) + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
+    e^.y  := TRUNC(y) + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
+    e^.dx :=            (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
+    e^.dy :=            (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
     e^.dx := e^.dx / 10;
     e^.dy := e^.dy / 10;
     CASE (RANDOM(RAND_MAX) MOD 4) of
@@ -1022,12 +1022,12 @@ procedure initStage;
 begin
   app.delegate.logic := @logic_Game;
   app.delegate.draw  := @draw_Game;
-  bulletTexture      := loadTexture('gfx/playerBullet.png');
-  enemyTexture       := loadTexture('gfx/enemy.png');
-  alienbulletTexture := loadTexture('gfx/alienBullet.png');
-  playerTexture      := loadTexture('gfx/player.png');
-  explosionTexture   := loadTexture('gfx/explosion.png');
-  pointsTexture      := loadTexture('gfx/points.png');
+  if bulletTexture = NIL      then bulletTexture      := loadTexture('gfx/playerBullet.png');
+  if enemyTexture = NIL       then enemyTexture       := loadTexture('gfx/enemy.png');
+  if alienbulletTexture = NIL then alienbulletTexture := loadTexture('gfx/alienBullet.png');
+  if playerTexture = NIL      then  playerTexture     := loadTexture('gfx/player.png');
+  if explosionTexture = NIL   then explosionTexture   := loadTexture('gfx/explosion.png');
+  if pointsTexture = NIL      then pointsTexture      := loadTexture('gfx/points.png');
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);     { empty keyboard puffer }
   resetStage;
   stage.score := 0;

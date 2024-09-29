@@ -22,9 +22,9 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ******************************************************************************
 *** Title screen and finishing touches
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter15-fa.pas
-*** shooter15-fa should run in it's own directory, 
-*** or rename "Higscore.json" to "Highscore1.json" in line 71 for to have less problems... :) 
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter15-fa.pas
+*** shooter15-fa should run in it's own directory,
+*** or rename "Higscore.json" to "Highscore1.json" in line 71 for to have less problems... :)
 ******************************************************************************}
 
 PROGRAM Shooter15_fps_atlas;
@@ -64,7 +64,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       GLYPH_HEIGHT     = 28;
       GLYPH_WIDTH      = 18;
 
-      NUMATLASBUCKETS  = 15;
+      NUMATLASBUCKETS  = 11;
       Json_Path        = 'data/atlas.json';
       Tex_Path         = 'gfx/atlas.png';
       Font_Path        = 'gfx/font.png';
@@ -244,12 +244,12 @@ begin
 end;
 
 function HashCode(Value : String255) : UInt32;     // DJB hash function
-VAR i, x, Result : UInt32;                         // slightly modified
+VAR i, x, Result : UInt32;
 begin
-  Result := 5381;
+  Result := 0;
   for i := 1 to Length(Value) do
   begin
-    Result := (Result shl 5) - Result + Ord(Value[i]);
+    Result := (Result shl 4) + Ord(Value[i]);
     x := Result and $F0000000;
     if (x <> 0) then
       Result := Result xor (x shr 24);
@@ -763,10 +763,10 @@ begin
     initExplosion(e);
     stage.explosionTail^.next := e;
     stage.explosionTail := e;
-    e^.x  := x + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
-    e^.y  := y + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
-    e^.dx :=     (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
-    e^.dy :=     (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
+    e^.x  := TRUNC(x) + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
+    e^.y  := TRUNC(y) + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
+    e^.dx :=            (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
+    e^.dy :=            (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
     e^.dx := e^.dx / 10;
     e^.dy := e^.dy / 10;
     CASE (RANDOM(RAND_MAX) MOD 4) of
@@ -796,7 +796,7 @@ begin
     if (e^.y + e^.h > SCREEN_HEIGHT) then begin e^.y := SCREEN_HEIGHT - e^.h; e^.dy := (-1 * e^.dy); end;
     e^.x := e^.x + (e^.dx * app.deltatime);
     e^.y := e^.y + (e^.dy * app.deltatime);
-    e^.health := e^.health - app.deltatime;
+    e^.health := MAX(e^.health - app.deltatime, 0);
     if ((player <> NIL) AND collision(e^.x, e^.y, e^.w, e^.h, player^.x, player^.y, player^.w, player^.h)) then
     begin
       e^.health := 0;
@@ -804,7 +804,7 @@ begin
       playSound(SND_POINTS, CH_POINTS);
     end;
 
-    if (e^.health <= 0) then
+    if (e^.health = 0) then
     begin
       if (e = stage.pointsTail) then
         stage.pointsTail := prev;
@@ -827,8 +827,8 @@ begin
     d^.x := d^.x + (d^.dx * app.deltatime);
     d^.y := d^.y + (d^.dy * app.deltatime);
     d^.dy := d^.dy + (0.5 * app.deltatime);
-    d^.life := d^.life - app.deltatime;
-    if (d^.life <= 0) then
+    d^.life := MAX(d^.life - app.deltatime, 0);
+    if (d^.life = 0) then
     begin
       if (d = stage.debrisTail) then
         stage.debrisTail := prev;
@@ -850,8 +850,8 @@ begin
   begin
     e^.x := e^.x + (e^.dx * app.deltatime);
     e^.y := e^.y + (e^.dy * app.deltatime);
-    e^.a := e^.a - app.deltatime;
-    if (e^.a <= 0) then
+    e^.a := MAX(e^.a - app.deltatime, 0);
+    if (e^.a = 0) then
     begin
       if (e = stage.ExplosionTail) then
         stage.ExplosionTail := prev;
@@ -877,8 +877,8 @@ end;
 
 procedure spawnEnemies;
 begin
-  enemyspawnTimer := enemyspawnTimer - app.DeltaTime;
-  if enemyspawnTimer <= 0 then
+  enemyspawnTimer := MAX(enemyspawnTimer - app.DeltaTime, 0);
+  if enemyspawnTimer = 0 then
   begin
     NEW(enemy);
     initEntity(enemy);
@@ -1009,8 +1009,8 @@ begin
     if (e <> player) then
     begin
       e^.y := MIN(MAX(e^.y, 0), (SCREEN_HEIGHT - e^.h));
-      e^.reload := e^.reload - app.deltatime;
-      if ((player <> NIL) AND (e^.reload <= 0)) then
+      e^.reload := MAX(e^.reload - app.deltatime, 0);
+      if ((player <> NIL) AND (e^.reload = 0)) then
       begin
         fireAlienbullet(e);
         e^.reload := (RANDOM(RAND_MAX) MOD (CFPS * 2));
@@ -1052,7 +1052,7 @@ begin
     if (app.keyboard[SDL_ScanCode_DOWN]  OR app.keyboard[SDL_ScanCode_KP_2]) = 1 then player^.dy :=       PLAYER_SPEED;
     if (app.keyboard[SDL_ScanCode_LEFT]  OR app.keyboard[SDL_ScanCode_KP_4]) = 1 then player^.dx := (-1 * PLAYER_SPEED);
     if (app.keyboard[SDL_ScanCode_RIGHT] OR app.keyboard[SDL_ScanCode_KP_6]) = 1 then player^.dx :=       PLAYER_SPEED;
-    if ((app.keyboard[SDL_ScanCode_LCTRL] = 1) AND (player^.reload <= 0)) then
+    if ((app.keyboard[SDL_ScanCode_LCTRL] = 1) AND (player^.reload = 0)) then
       begin fireBullet; playSound(SND_PLAYER_FIRE, CH_PLAYER); end;
   end;
 end;
@@ -1077,8 +1077,8 @@ begin
   clipPlayer;
   if (player = NIL) then
   begin
-    resetTimer := resetTimer - app.deltaTime;
-    if (resetTimer <= 0) then
+    resetTimer := MAX(resetTimer - app.deltaTime, 0);
+    if (resetTimer = 0) then
     begin
       addHighScore(stage.score);
       initHighScore;
@@ -1224,8 +1224,8 @@ begin
   doStarfield;
   if (reveal < reveal_max) then
     reveal := reveal + app.deltatime;
-  timeout := timeout - app.deltatime;
-  if timeout <= 0 then
+  timeout := MAX(timeout - app.deltatime, 0);
+  if timeout = 0 then
   begin
     initHighScore;
     reveal := 0;
@@ -1465,8 +1465,8 @@ begin
     doNameInput
   else
   begin
-    timeout := timeout - app.deltatime;
-    if timeout <= 0 then
+    timeout := MAX(timeout - app.deltatime, 0);
+    if timeout = 0 then
       initTitle;
     if (app.keyboard[SDL_ScanCode_LCTRL] = 1) then
       initStage;

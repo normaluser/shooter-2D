@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Score pods
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter12.pas
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter12.pas
 ***************************************************************************}
 
 PROGRAM Shooter12;
@@ -512,10 +512,10 @@ begin
     initExplosion(e);
     stage.explosionTail^.next := e;
     stage.explosionTail := e;
-    e^.x  := x + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
-    e^.y  := y + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
-    e^.dx :=     (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
-    e^.dy :=     (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
+    e^.x  := TRUNC(x) + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
+    e^.y  := TRUNC(y) + (RANDOM(RAND_MAX) MOD 32) - (RANDOM(RAND_MAX) MOD 32);
+    e^.dx :=            (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
+    e^.dy :=            (RANDOM(RAND_MAX) MOD 10) - (RANDOM(RAND_MAX) MOD 10);
     e^.dx := e^.dx / 10;
     e^.dy := e^.dy / 10;
     CASE (RANDOM(RAND_MAX) MOD 4) of
@@ -964,13 +964,13 @@ begin
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then
     errorMessage(SDL_GetError());
 
-  app.Window := SDL_CreateWindow('Shooter 12', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
-  if app.Window = NIL then
-    errorMessage(SDL_GetError());
-
   if MIX_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0 then
     errorMessage(SDL_GetError());
   Mix_AllocateChannels(MAX_SND_CHANNELS);
+
+  app.Window := SDL_CreateWindow('Shooter 12', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+  if app.Window = NIL then
+    errorMessage(SDL_GetError());
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);

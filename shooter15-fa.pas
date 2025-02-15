@@ -1517,13 +1517,13 @@ begin
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then
     errorMessage(SDL_GetError());
 
-  app.Window := SDL_CreateWindow('Shooter 15', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
-  if app.Window = NIL then
-    errorMessage(SDL_GetError());
-
   if MIX_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0 then
     errorMessage(SDL_GetError());
   Mix_AllocateChannels(MAX_SND_CHANNELS);
+
+  app.Window := SDL_CreateWindow('Shooter 15', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+  if app.Window = NIL then
+    errorMessage(SDL_GetError());
 
   SDL_SetHint(SDL_HINT_RENDER_BATCHING, '1');
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');

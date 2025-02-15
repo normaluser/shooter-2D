@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Title screen and finishing touches
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter15.pas
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter15.pas
 ***************************************************************************}
 
 PROGRAM Shooter15;
@@ -1296,13 +1296,13 @@ begin
   if SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_AUDIO) < 0 then
     errorMessage(SDL_GetError());
 
-  app.Window := SDL_CreateWindow('Shooter 15', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
-  if app.Window = NIL then
-    errorMessage(SDL_GetError());
-
   if MIX_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) < 0 then
     errorMessage(SDL_GetError());
   Mix_AllocateChannels(MAX_SND_CHANNELS);
+
+  app.Window := SDL_CreateWindow('Shooter 15', SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+  if app.Window = NIL then
+    errorMessage(SDL_GetError());
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 'linear');
   app.Renderer := SDL_CreateRenderer(app.Window, -1, rendererFlags);

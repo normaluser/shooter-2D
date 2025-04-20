@@ -22,13 +22,13 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Refactoring: pointers for linked lists
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter05.pas
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter05.pas
 ***************************************************************************}
 
 PROGRAM Shooter05;
 {$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image;
+USES SDL2, SDL2_Image, cTypes;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
@@ -49,7 +49,8 @@ TYPE TDelegating = Procedure;               { "T" short for "TYPE" }
      PEntity     = ^TEntity;             { "P" short for "Pointer" }
      TEntity     = RECORD
                      x, y, dx, dy : double;
-                     w, h, health, reload : integer;
+                     w, h : cint;
+                     health, reload : integer;
                      Texture : PSDL_Texture;
                      next : PEntity;
                    end;
@@ -166,7 +167,6 @@ begin
 end;
 
 procedure fireBullet;
-VAR dest : TSDL_Rect;
 begin
   NEW(bullet);
   initEntity(bullet);
@@ -177,9 +177,7 @@ begin
   bullet^.dx := PLAYER_BULLET_SPEED;
   bullet^.health := 1;
   bullet^.Texture := CacheBulletTex;
-  SDL_QueryTexture(bullet^.Texture, NIL, NIL, @dest.w, @dest.h);
-  bullet^.w := dest.w;
-  bullet^.h := dest.h;
+  SDL_QueryTexture(bullet^.Texture, NIL, NIL, @bullet^.w, @bullet^.h);
   bullet^.x := bullet^.x + (player^.w DIV 2);
   bullet^.y := bullet^.y + (player^.h DIV 2) - (bullet^.h DIV 2);
   player^.reload := 8;
@@ -200,7 +198,6 @@ begin
 end;
 
 procedure initPlayer;
-VAR dest : TSDL_Rect;
 begin
   NEW(player);
   initEntity(player);
@@ -210,9 +207,7 @@ begin
   player^.y := 100;
   player^.reload := 8;
   player^.Texture := CachePlayerTex;
-  SDL_QueryTexture(player^.Texture, NIL, NIL, @dest.w, @dest.h);
-  player^.w := dest.w;
-  player^.h := dest.h;
+  SDL_QueryTexture(player^.Texture, NIL, NIL, @player^.w, @player^.h);
 end;
 
 procedure logic_Game;
@@ -291,6 +286,7 @@ begin
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
   if Exitcode <> 0 then WriteLn(SDL_GetError());
+  SDL_ShowCursor(1);
 end;
 
 // *****************   Input  *****************

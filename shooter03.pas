@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Moving the player with cursorkeys or NUMPAD-Keys
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter03.pas
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter03.pas
 ***************************************************************************}
 
 PROGRAM Shooter03;

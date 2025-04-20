@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Drawing the player
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter02.pas
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter02.pas
 ***************************************************************************}
 
 PROGRAM Shooter02;
@@ -119,7 +119,7 @@ end;
 
 procedure AtExit;
 begin
-  SDL_DestroyTexture (player.Texture);
+  //SDL_DestroyTexture (player.Texture);
   SDL_DestroyRenderer(app.Renderer);
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;

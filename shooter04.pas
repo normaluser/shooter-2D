@@ -22,7 +22,7 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Firing with the "LEFT Strg / Ctrl" key
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter04.pas
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter04.pas
 ***************************************************************************}
 
 PROGRAM Shooter04;
@@ -39,7 +39,8 @@ TYPE TApp    = RECORD                       { "T" short for "TYPE" }
                  up, down, left, right, fire : integer;
                end;
      TEntity = RECORD
-                 x, y, dx, dy, health : integer;
+                 x, y : double;
+                 dx, dy, health : integer;
                  Texture : PSDL_Texture;
                end;
 
@@ -119,6 +120,7 @@ begin
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
   if Exitcode <> 0 then WriteLn(SDL_GetError());
+  SDL_ShowCursor(1);
 end;
 
 // *****************   Input  *****************
@@ -199,8 +201,8 @@ begin
     bullet.x := bullet.x + bullet.dx;
     bullet.y := bullet.y + bullet.dy;
     if (bullet.x > SCREEN_WIDTH) then bullet.health := 0;
-    blit(player.Texture, player.x, player.y);
-    if (bullet.health > 0) then blit(bullet.Texture, bullet.x, bullet.y);
+    blit(player.Texture, TRUNC(player.x), TRUNC(player.y));
+    if (bullet.health > 0) then blit(bullet.Texture, TRUNC(bullet.x), TRUNC(bullet.y));
     presentScene;
     SDL_Delay(16);
   end;

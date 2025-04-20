@@ -22,13 +22,13 @@ https://www.parallelrealities.co.uk/tutorials/#Shooter
 converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************
 *** Shooting enemies
-*** without memory holes; testet with: fpc -Criot -gl -gh shooter07.pas
+*** without memory holes; tested with: fpc -Criot -gl -gh shooter07.pas
 ***************************************************************************}
 
 PROGRAM Shooter07;
 {$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
-USES SDL2, SDL2_Image, math;
+USES SDL2, SDL2_Image, math, cTypes;
 
 CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SCREEN_HEIGHT = 720;             { size of the grafic window }
@@ -53,7 +53,8 @@ TYPE TDelegating    = Procedure;            { "T" short for "TYPE" }
      PEntity        = ^TEntity;
      TEntity        = RECORD
                         x, y, dx, dy : double;
-                        w, h, health, reload, side : integer;
+                        w, h : cint;
+                        health, reload, side : integer;
                         Texture : PSDL_Texture;
                         next : PEntity;
                       end;
@@ -168,7 +169,6 @@ begin
 end;
 
 procedure spawnEnemies;
-VAR dest : TSDL_Rect;
 begin
   DEC(enemyspawnTimer);
   if enemyspawnTimer <= 0 then
@@ -178,9 +178,7 @@ begin
     stage.fighterTail^.next := enemy;
     stage.fighterTail := enemy;
     enemy^.Texture := CacheEnemyTex;
-    SDL_QueryTexture(enemy^.Texture, NIL, NIL, @dest.w, @dest.h);
-    enemy^.w := dest.w;
-    enemy^.h := dest.h;
+    SDL_QueryTexture(enemy^.Texture, NIL, NIL, @enemy^.w, @enemy^.h);
     enemy^.x := SCREEN_WIDTH;
     enemy^.y := RANDOM(SCREEN_HEIGHT - enemy^.h);
     enemy^.dx := -1 * (2 + (RANDOM(RAND_MAX) MOD 4));
@@ -255,7 +253,6 @@ begin
 end;
 
 procedure fireBullet;
-VAR dest : TSDL_Rect;
 begin
   NEW(bullet);
   initEntity(bullet);
@@ -266,9 +263,7 @@ begin
   bullet^.dx := PLAYER_BULLET_SPEED;
   bullet^.health := 1;
   bullet^.Texture := CacheBulletTex;
-  SDL_QueryTexture(bullet^.Texture, NIL, NIL, @dest.w, @dest.h);
-  bullet^.w := dest.w;
-  bullet^.h := dest.h;
+  SDL_QueryTexture(bullet^.Texture, NIL, NIL, @bullet^.w, @bullet^.h);
   bullet^.x := bullet^.x + (player^.w DIV 2);
   bullet^.y := bullet^.y + (player^.h DIV 2) - (bullet^.h DIV 2);
   bullet^.side := SIDE_PLAYER;
@@ -288,7 +283,6 @@ begin
 end;
 
 procedure initPlayer;
-VAR dest : TSDL_Rect;
 begin
   NEW(player);
   initEntity(player);
@@ -297,9 +291,7 @@ begin
   player^.x := 100;
   player^.y := 100;
   player^.Texture := CachePlayerTex;
-  SDL_QueryTexture(player^.Texture, NIL, NIL, @dest.w, @dest.h);
-  player^.w := dest.w;
-  player^.h := dest.h;
+  SDL_QueryTexture(player^.Texture, NIL, NIL, @player^.w, @player^.h);
   player^.side := SIDE_PLAYER;
 end;
 
@@ -381,6 +373,7 @@ begin
   SDL_DestroyWindow  (app.Window);
   SDL_Quit;
   if Exitcode <> 0 then WriteLn(SDL_GetError());
+  SDL_ShowCursor(1);
 end;
 
 // *****************   Input  *****************

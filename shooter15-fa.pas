@@ -58,8 +58,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SND_MAX          = 6;
       CH_ANY           = -1;
       CH_PLAYER        = 0;
-      CH_ALIEN_FIRE    = 1;
-      CH_POINTS        = 2;
+      CH_POINTS        = 1;
 
       GLYPH_HEIGHT     = 28;
       GLYPH_WIDTH      = 18;
@@ -96,7 +95,7 @@ TYPE TDelegating = Procedure;               { "T" short for "TYPE" }
                      inputText : String;
                      deltaTime : double;
                      dev : TDev;
-                     delegate : TDelegate;
+                     Delegate : TDelegate;
                    end;
      PEntity     = ^TEntity;
      TEntity     = RECORD
@@ -167,7 +166,7 @@ VAR app              : TApp;
     cursorBlink,
     backgroundX      : double;
     stars            : ARRAY[0..MAX_STARS] OF TStar;
-    sounds           : ARRAY[1..SND_MAX] OF PMix_Chunk;
+    sounds           : ARRAY[1..pred(SND_MAX)] OF PMix_Chunk;
     music            : PMix_Music;
     SoundVol         : integer;
     MusicVol         : integer;
@@ -178,7 +177,7 @@ VAR app              : TApp;
 
 procedure initEntity(e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;  e^.side := 0;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL; e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -294,7 +293,7 @@ begin
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
   if sounds[5] = NIL then logMessage('Soundfile: "342749__rhodesmas__notification-01.ogg"');
 
-  for i := 1 to 5 do
+  for i := 1 to pred(SND_MAX) do
     Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
 end;
 
@@ -684,7 +683,7 @@ begin
   p := stage.pointsHead^.next;
   while (p <> NIL) do
   begin
-    if ((p^.health > (CFPS * 2)) OR ((p^.health MOD 12) < 6)) then
+    if ((p^.health > (cFPS * 2)) OR ((p^.health MOD 12) < 6)) then
       blitAtlasImage(p^.Texture, p^.x, p^.y, 0);
     p := p^.next;
   end;
@@ -713,7 +712,7 @@ begin
   e^.y := y;
   e^.dx := -1 * (RANDOM(RAND_MAX) MOD 5);
   e^.dy := (RANDOM(RAND_MAX) MOD 5) - (RANDOM(RAND_MAX) MOD 5);
-  e^.health := CFPS * POINTSPOD_TIME;
+  e^.health := cFPS * POINTSPOD_TIME;
   e^.Texture := getAtlasImage('gfx/points.png');
   e^.w := e^.texture^.rec.w;
   e^.h := e^.texture^.rec.h;
@@ -740,7 +739,7 @@ begin
       d^.y := e^.y + (e^.h DIV 2);
       d^.dx := (RANDOM(RAND_MAX) MOD 5) - (RANDOM(RAND_MAX) MOD 5);
       d^.dy := -1 * (5 + (RANDOM(RAND_MAX) MOD 12));
-      d^.life := CFPS * 2;
+      d^.life := cFPS * 2;
       d^.Texture := e^.Texture;
       d^.rect.x := e^.texture^.rec.x + x;
       d^.rect.y := e^.texture^.rec.y + y;
@@ -779,7 +778,7 @@ begin
                 e^.g := 255;
                 e^.b := 255; end;
     end;   { end of CASE }
-    e^.a := (RANDOM(RAND_MAX) MOD (CFPS * 3));
+    e^.a := (RANDOM(RAND_MAX) MOD (cFPS * 3));
   end;
 end;
 
@@ -895,8 +894,8 @@ begin
     enemy^.dy := enemy^.dy / 100;
     enemy^.side := SIDE_ALIEN;
     enemy^.health := 1;
-    enemy^.reload := CFPS * (1 + (RANDOM(RAND_MAX) MOD 3));
-    enemyspawnTimer := 30 + (RANDOM(RAND_MAX) MOD CFPS);
+    enemy^.reload := cFPS * (1 + (RANDOM(RAND_MAX) MOD 3));
+    enemyspawnTimer := 30 + (RANDOM(RAND_MAX) MOD cFPS);
   end;
 end;
 
@@ -1013,8 +1012,8 @@ begin
       if ((player <> NIL) AND (e^.reload = 0)) then
       begin
         fireAlienbullet(e);
-        e^.reload := (RANDOM(RAND_MAX) MOD (CFPS * 2));
-        playSound(SND_ALIEN_FIRE, CH_ALIEN_FIRE);
+        e^.reload := (RANDOM(RAND_MAX) MOD (cFPS * 2));
+        playSound(SND_ALIEN_FIRE, CH_ANY);
       end;
     end;
     e := e^.next;
@@ -1053,7 +1052,7 @@ begin
     if (app.keyboard[SDL_ScanCode_LEFT]  OR app.keyboard[SDL_ScanCode_KP_4]) = 1 then player^.dx := (-1 * PLAYER_SPEED);
     if (app.keyboard[SDL_ScanCode_RIGHT] OR app.keyboard[SDL_ScanCode_KP_6]) = 1 then player^.dx :=       PLAYER_SPEED;
     if ((app.keyboard[SDL_ScanCode_LCTRL] = 1) AND (player^.reload = 0)) then
-      begin fireBullet; playSound(SND_PLAYER_FIRE, CH_PLAYER); end;
+      begin fireBullet; playSound(SND_PLAYER_FIRE, CH_ANY); end;
   end;
 end;
 
@@ -1162,8 +1161,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := @logic_Game;
-  app.delegate.draw  := @draw_Game;
+  app.Delegate.logic := @logic_Game;
+  app.Delegate.draw  := @draw_Game;
   explosionAtlas     := getAtlasImage('gfx/explosion.png');
   explode            := SDL_CreateTexture(app.Renderer,SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, explosionAtlas^.rec.w, explosionAtlas^.rec.h);
   SDL_SetRenderTarget(app.Renderer, explode);
@@ -1174,7 +1173,7 @@ begin
   stage.score := 0;
   initPlayer;
   enemyspawnTimer := 0;
-  resetTimer := CFPS * 3;
+  resetTimer := cFPS * 3;
 end;
 
 //*****************  TITLE  **********************
@@ -1236,14 +1235,14 @@ end;
 
 procedure initTitle;
 begin
-  app.delegate.logic := @logic_Title;
-  app.delegate.draw  := @draw_Title;
+  app.Delegate.logic := @logic_Title;
+  app.Delegate.draw  := @draw_Title;
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);     { empty keyboard puffer }
   SDL2Texture := getAtlasImage('gfx/sdl2.png');
   shooterTexture := getAtlasImage('gfx/shooter.png');
   reveal_max := ShooterTexture^.rec.h;
   reveal := 0;
-  timeout := CFPS * 5;
+  timeout := cFPS * 5;
 end;
 
 // ***************  HIGHSCORE  ****************
@@ -1417,7 +1416,7 @@ begin
   drawText(SCREEN_WIDTH DIV 2,  70, 255, 255, 255, TEXT_CENTER, 'CONGRATULATIONS, YOU''VE GAINED A HIGHSCORE!');
   drawText(SCREEN_WIDTH DIV 2, 120, 255, 255, 255, TEXT_CENTER, 'ENTER YOUR NAME BELOW:');
   drawText(SCREEN_WIDTH DIV 2, 250, 128, 255, 128, TEXT_CENTER, newHighScore.name);
-  if (cursorBlink < (CFPS DIV  2)) then
+  if (cursorBlink < (cFPS DIV  2)) then
   begin
     r.x := ((SCREEN_WIDTH DIV 2) + (LENGTH(newHighScore.name) * GLYPH_WIDTH) DIV 2) + 5;
     r.y := 250;
@@ -1472,7 +1471,7 @@ begin
       initStage;
   end;
   cursorBlink := cursorBlink + app.deltatime;
-  if cursorBlink >= CFPS then
+  if cursorBlink >= cFPS then
     cursorBlink := 0;
 end;
 
@@ -1493,9 +1492,9 @@ end;
 procedure initHighScore;
 begin
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);     { empty keyboard puffer }
-  app.delegate.logic := @logic_HighSC;
-  app.delegate.draw  := @draw_HighSC;
-  timeout := CFPS * 5;
+  app.Delegate.logic := @logic_HighSC;
+  app.Delegate.draw  := @draw_HighSC;
+  timeout := cFPS * 5;
 end;
 
 procedure initHighScoreTable;
@@ -1584,7 +1583,7 @@ begin
   if stage.debrisHead    <> NIL then DISPOSE(stage.debrisHead);
   if stage.pointsHead    <> NIL then DISPOSE(stage.pointsHead);
 
-  for i := 5 downto 1 do
+  for i := pred(SND_MAX) downto 1 do
     Mix_FreeChunk(sounds[i]);
   Mix_FreeMusic(music);
   if ExitCode <> 0 then WriteLn('CleanUp complete!');
@@ -1642,10 +1641,10 @@ begin
   begin
     tmpDelta := app.deltaTime;
     app.deltaTime := 1;
-    app.delegate.logic;
+    app.Delegate.logic;
     app.deltaTime := (tmpDelta - 1);
   end;
-  app.delegate.logic;
+  app.Delegate.logic;
 end;
 
 procedure doFPS;
@@ -1680,7 +1679,7 @@ begin
     prepareScene;
     doInput;
     logic1;
-    app.delegate.draw;
+    app.Delegate.draw;
     presentScene;
     SDL_Delay(1);
     app.deltaTime := LOGIC_RATE * (SDL_GetTicks - thentime);

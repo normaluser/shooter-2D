@@ -26,7 +26,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter10;
-{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$Mode fpc} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
 USES SDL2, SDL2_Image, SDL2_Mixer, Math, cTypes;
 
@@ -43,11 +43,11 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       MAX_STARS = 500;
 
       MAX_SND_CHANNELS = 8;
-      SND_PLAYER_FIRE  = 1;
-      SND_ALIEN_FIRE   = 2;
-      SND_PLAYER_DIE   = 3;
-      SND_ALIEN_DIE    = 4;
-      SND_MAX          = 5;
+      SND_PLAYER_FIRE  = 1;      // sounds[1] := Mix_LoadWAV('sound/334227__jradcoolness__laser.ogg');
+      SND_ALIEN_FIRE   = 2;      // sounds[2] := Mix_LoadWAV('sound/196914__dpoggioli__laser-gun.ogg');
+      SND_PLAYER_DIE   = 3;      // sounds[3] := Mix_LoadWAV('sound/245372__quaker540__hq-explosion.ogg');
+      SND_ALIEN_DIE    = 4;      // sounds[4] := Mix_LoadWAV('sound/10 Guage Shotgun-SoundBible.com-74120584.ogg');
+      SND_MAX          = 5;      // sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
       CH_ANY           = -1;
       CH_PLAYER        = 0;
       CH_ALIEN_FIRE    = 1;
@@ -60,7 +60,7 @@ TYPE TDelegating = Procedure;               { "T" short for "TYPE" }
                      Window   : PSDL_Window;
                      Renderer : PSDL_Renderer;
                      keyboard : ARRAY[0..MAX_KEYBOARD_KEYS] OF integer;
-                     delegate : TDelegate;
+                     Delegate : TDelegate;
                    end;
      PEntity     = ^TEntity;
      TEntity     = RECORD
@@ -113,7 +113,7 @@ VAR app                  : TApp;
     enemyspawnTimer,
     resetTimer           : integer;
     stars                : ARRAY[0..MAX_STARS] OF TStar;
-    sounds               : ARRAY[1..SND_MAX] OF PMix_Chunk;
+    sounds               : ARRAY[1..pred(SND_MAX)] OF PMix_Chunk;
     music                : PMix_Music;
 
 // *****************   INIT   *****************
@@ -158,8 +158,8 @@ begin
   steps := MAX(ABS(x1-x2), ABS(y1-y2));
   if steps = 0 then
   begin
-    dx := 0;
-    dy := 0;
+    dx := 0.0;
+    dy := 0.0;
   end
   else
   begin
@@ -172,11 +172,11 @@ end;
 
 procedure errorMessage(Message1 : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message1),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBox_Error,'Error Box',PChar(Message1),NIL);
   HALT(1);
 end;
 
-procedure logMessage(Message1 : string);
+procedure logMessage(Message1 : String);
 VAR Fmt : PChar;
 begin
   Fmt := 'File not found: %s'#13;    // Formatstring und "ARRAY of const" als Parameteruebergabe in [ ]
@@ -196,10 +196,10 @@ begin
   if sounds[3] = NIL then logMessage('Soundfile: "245372__quaker540__hq-explosion.ogg"');
   sounds[4] := Mix_LoadWAV('sound/10 Guage Shotgun-SoundBible.com-74120584.ogg');
   if sounds[4] = NIL then logMessage('Soundfile: "10 Guage Shotgun-SoundBible.com-74120584.ogg"');
-  sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
-  if sounds[5] = NIL then logMessage('Soundfile: "342749__rhodesmas__notification-01.ogg"');
+  //sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
+  //if sounds[5] = NIL then logMessage('Soundfile: "342749__rhodesmas__notification-01.ogg"');
 
-  for i := 1 to 5 do
+  for i := 1 to pred(SND_MAX) do
     Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
 end;
 
@@ -776,8 +776,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := @logic_Game;
-  app.delegate.draw  := @draw_Game;
+  app.Delegate.logic := @logic_Game;
+  app.Delegate.draw  := @draw_Game;
   NEW(stage.fighterHead);
   NEW(stage.bulletHead);
   NEW(stage.explosionHead);
@@ -838,7 +838,7 @@ begin
   DISPOSE(stage.bulletHead);
 
   Mix_FreeMusic(music);
-  Mix_FreeChunk(sounds[5]);
+  //Mix_FreeChunk(sounds[5]);
   Mix_FreeChunk(sounds[4]);
   Mix_FreeChunk(sounds[3]);
   Mix_FreeChunk(sounds[2]);
@@ -846,7 +846,7 @@ begin
   if ExitCode <> 0 then WriteLn('CleanUp complete!');
 end;
 
-procedure AtExit;
+procedure atExit;
 begin
   if ExitCode <> 0 then cleanUp;
   Mix_CloseAudio;
@@ -905,7 +905,7 @@ end;
 begin
   RANDOMIZE;
   InitSDL;
-  AddExitProc(@AtExit);
+  AddExitProc(@atExit);
   initSounds;
   InitStage;
   exitLoop := FALSE;
@@ -917,8 +917,8 @@ begin
   begin
     prepareScene;
     doInput;
-    app.delegate.logic;
-    app.delegate.draw;
+    app.Delegate.logic;
+    app.Delegate.draw;
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;
@@ -926,5 +926,5 @@ begin
   resetStage;
   resetLists;
   cleanUp;
-  AtExit;
+  atExit;
 end.

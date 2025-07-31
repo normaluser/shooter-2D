@@ -26,7 +26,7 @@ converted from "C" to "Pascal" by Ulrich 2021
 ***************************************************************************}
 
 PROGRAM Shooter14;
-{$mode FPC} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
+{$Mode fpc} {$H+}    { "$H+" necessary for conversion of String to PChar !!; H+ => AnsiString }
 {$COPERATORS OFF}
 USES SDL2, SDL2_Image, SDL2_Mixer, Math, sysutils, cTypes;
 
@@ -55,8 +55,7 @@ CONST SCREEN_WIDTH  = 1280;            { size of the grafic window }
       SND_MAX          = 6;
       CH_ANY           = -1;
       CH_PLAYER        = 0;
-      CH_ALIEN_FIRE    = 1;
-      CH_POINTS        = 2;
+      CH_POINTS        = 1;
 
       GLYPH_HEIGHT     = 28;
       GLYPH_WIDTH      = 18;
@@ -79,7 +78,7 @@ TYPE TDelegating = Procedure;               { "T" short for "TYPE" }
                      keyboard : ARRAY[0..MAX_KEYBOARD_KEYS] OF integer;
                      textureHead, textureTail : PTextur;
                      inputText : String;
-                     delegate : TDelegate;
+                     Delegate : TDelegate;
                    end;
      PEntity     = ^TEntity;
      TEntity     = RECORD
@@ -146,7 +145,7 @@ VAR app                  : TApp;
     enemyspawnTimer,
     resetTimer           : integer;
     stars                : ARRAY[0..MAX_STARS] OF TStar;
-    sounds               : ARRAY[1..SND_MAX] OF PMix_Chunk;
+    sounds               : ARRAY[1..pred(SND_MAX)] OF PMix_Chunk;
     music                : PMix_Music;
     HighScores           : THighScoreARRAY;
     newHighScore         : THighScoreDef;
@@ -155,7 +154,7 @@ VAR app                  : TApp;
 
 procedure initEntity(e : PEntity);
 begin
-  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL;  e^.side := 0;
+  e^.x := 0.0; e^.y := 0.0; e^.dx := 0.0;   e^.dy := 0.0;   e^.Texture := NIL; e^.side := 0;
   e^.w := 0;   e^.h := 0;   e^.health := 0; e^.reload := 0; e^.next := NIL;
 end;
 
@@ -195,11 +194,11 @@ begin
   initEntity(stage.pointsHead);
 
   app.textureTail     := app.textureHead;
-  stage.fighterTail := stage.fighterHead;
-  stage.bulletTail  := stage.bulletHead;
+  stage.fighterTail   := stage.fighterHead;
+  stage.bulletTail    := stage.bulletHead;
   stage.explosionTail := stage.explosionHead;
-  stage.debrisTail  := stage.debrisHead;
-  stage.pointsTail  := stage.pointsHead;
+  stage.debrisTail    := stage.debrisHead;
+  stage.pointsTail    := stage.pointsHead;
 end;
 
 // *****************   UTIL   *****************
@@ -236,11 +235,11 @@ end;
 
 procedure errorMessage(Message1 : String);
 begin
-  SDL_ShowSimpleMessageBox(SDL_MessageBOX_ERROR,'Error Box',PChar(Message1),NIL);
+  SDL_ShowSimpleMessageBox(SDL_MessageBox_Error,'Error Box',PChar(Message1),NIL);
   HALT(1);
 end;
 
-procedure logMessage(Message1 : string);
+procedure logMessage(Message1 : String);
 VAR Fmt : PChar;
 begin
   Fmt := 'File not found: %s'#13;    // Formatstring und "ARRAY of const" als Parameteruebergabe in [ ]
@@ -263,7 +262,7 @@ begin
   sounds[5] := Mix_LoadWAV('sound/342749__rhodesmas__notification-01.ogg');
   if sounds[5] = NIL then logMessage('Soundfile: "342749__rhodesmas__notification-01.ogg"');
 
-  for i := 1 to 5 do
+  for i := 1 to pred(SND_MAX) do
     Mix_VolumeChunk(sounds[i], MIX_MAX_VOLUME);
 end;
 
@@ -861,7 +860,7 @@ begin
       if (e^.reload <= 0) then
       begin
         fireAlienbullet(e);
-        playSound(SND_ALIEN_FIRE, CH_ALIEN_FIRE);
+        playSound(SND_ALIEN_FIRE, CH_ANY);
       end;
     end;
     e := e^.next;
@@ -898,7 +897,7 @@ begin
     if (app.keyboard[SDL_ScanCode_LEFT]  OR app.keyboard[SDL_ScanCode_KP_4]) = 1 then player^.dx := (-1 * PLAYER_SPEED);
     if (app.keyboard[SDL_ScanCode_RIGHT] OR app.keyboard[SDL_ScanCode_KP_6]) = 1 then player^.dx :=       PLAYER_SPEED;
     if ((app.keyboard[SDL_ScanCode_LCTRL] = 1) AND (player^.reload <= 0)) then
-      begin fireBullet; playSound(SND_PLAYER_FIRE, CH_PLAYER); end;
+      begin fireBullet; playSound(SND_PLAYER_FIRE, CH_ANY); end;
   end;
 end;
 
@@ -1006,8 +1005,8 @@ end;
 
 procedure initStage;
 begin
-  app.delegate.logic := @logic_Game;
-  app.delegate.draw  := @draw_Game;
+  app.Delegate.logic := @logic_Game;
+  app.Delegate.draw  := @draw_Game;
   if bulletTexture = NIL      then bulletTexture      := loadTexture('gfx/playerBullet.png');
   if enemyTexture = NIL       then enemyTexture       := loadTexture('gfx/enemy.png');
   if alienbulletTexture = NIL then alienbulletTexture := loadTexture('gfx/alienBullet.png');
@@ -1197,8 +1196,8 @@ end;
 procedure initHighScore;
 begin
   FillChar(app.keyboard, SizeOf(app.Keyboard), 0);     { empty keyboard puffer }
-  app.delegate.logic := @logic_HighSC;
-  app.delegate.draw  := @draw_HighSC;
+  app.Delegate.logic := @logic_HighSC;
+  app.Delegate.draw  := @draw_HighSC;
 end;
 
 // ***************   INIT SDL   ***************
@@ -1280,7 +1279,7 @@ begin
   if ExitCode <> 0 then WriteLn('CleanUp complete!');
 end;
 
-procedure AtExit;
+procedure atExit;
 begin
   if ExitCode <> 0 then cleanUp;
   Mix_CloseAudio;
@@ -1339,7 +1338,7 @@ end;
 
 // *************   DELEGATE LOGIC   ***********
 
-{procedure delegate_logic(Wahl : TDelegating);
+{procedure Delegate_logic(Wahl : TDelegating);
 begin
   CASE Wahl of
   HighSC : begin
@@ -1358,7 +1357,7 @@ end;}
 begin
   RANDOMIZE;
   InitSDL;
-  AddExitProc(@AtExit);
+  AddExitProc(@atExit);
   initGame;
   initHighScore;
 
@@ -1366,12 +1365,12 @@ begin
   begin
     prepareScene;
     doInput;
-    app.delegate.logic;
-    app.delegate.draw;
+    app.Delegate.logic;
+    app.Delegate.draw;
     presentScene;
     CapFrameRate(gRemainder, gTicks);
   end;
 
   cleanUp;
-  AtExit;
+  atExit;
 end.
